@@ -1,7 +1,5 @@
 # Compiled Dynamic libraries
-*.so
 *.dylib
-*.dll
 
 # Compiled Static libraries
 *.lai
@@ -17,6 +15,7 @@ tags
 TAGS
 
 # CMake related files & folders
+CMakeBuild/
 CMakeFiles/
 
 # Visual Studio project related files & folders

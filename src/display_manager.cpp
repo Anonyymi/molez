@@ -17,15 +17,18 @@ namespace DisplayManager
 	// Quit (clears memory)
 	void quit()
 	{
-		for (auto w : LOADED_WINDOWS)
+		// Clean up fbos/windows
+		for (auto _w : LOADED_WINDOWS)
 		{
-			mlibc_inf("DisplayManager::quit(). Destroy window.");
+			Window * w = _w.second;
 
-			delete w.second->framebuffer;
-			SDL_DestroyTexture(w.second->texture);
-			SDL_DestroyRenderer(w.second->renderer);
-			SDL_DestroyWindow(w.second->handle);
-			delete w.second;
+			delete w->framebuffer;
+			SDL_DestroyTexture(w->texture);
+			SDL_DestroyRenderer(w->renderer);
+			SDL_DestroyWindow(w->handle);
+			delete w;
+
+			mlibc_inf("DisplayManager::quit(). Destroyed Window instance.");
 		}
 	}
 

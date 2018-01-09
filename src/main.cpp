@@ -48,7 +48,16 @@ int main(int argc, char * argv[])
 	TextureManager::init();
 
 	// Test level generation
-	Level level(L_EARTH, DisplayManager::ACTIVE_WINDOW->width, DisplayManager::ACTIVE_WINDOW->height, 1234);
+	LevelConfig level_cfg;
+	level_cfg.seed = 12345;
+	level_cfg.type = L_EARTH;
+	level_cfg.width = DisplayManager::ACTIVE_WINDOW->width;
+	level_cfg.height = DisplayManager::ACTIVE_WINDOW->height;
+	level_cfg.n_scale = 0.0075f;
+	level_cfg.n_water = 48;
+	level_cfg.n_lava = 2;
+
+	Level level(level_cfg);
 	level.generate();
 
 	// Keep track of mouse
@@ -92,7 +101,7 @@ int main(int argc, char * argv[])
 					switch (sdl_event.key.keysym.sym)
 					{
 						case SDLK_ESCAPE: running = false; break;
-						case SDLK_r: level.regenerate(time(NULL)); break;
+						case SDLK_r: level.regenerate((uint32_t)time(NULL)); break;
 					} break;
 				} break;
 				case SDL_MOUSEBUTTONDOWN:

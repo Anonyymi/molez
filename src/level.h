@@ -31,28 +31,34 @@ struct Pixel
 	int8_t b;
 };
 
+struct LevelConfig
+{
+	uint32_t seed;					// initial seed
+	Level_t type;					// generator type
+	int32_t width;					// bitmap width
+	int32_t height;					// bitmap height
+	float n_scale;					// noise scale
+	uint8_t n_water;				// 0..255
+	uint8_t n_lava;					// 0..255
+};
+
 class Level
 {
 public:
 	Level(
-		Level_t type = L_EARTH,
-		size_t width = 640,
-		size_t height = 467,
-		uint32_t seed = 1234
+		LevelConfig config
 	);
 	~Level();
 
 	void generate();
 	void regenerate(uint32_t seed);
 	void sample_pixel(Pixel * pixel);
-	void alter(Material_t material, int32_t radius, int32_t x, int32_t y);
+	void alter(Material_t m, int32_t r, int32_t x, int32_t y);
 	void render();
 	void update();
 private:
-	Level_t m_type;
-	size_t m_width;
-	size_t m_height;
-	SimplexGen m_nGenSimplex;
+	LevelConfig m_cfg;
+	SimplexGen m_simplex;
 	std::vector<Pixel> m_bitmap;
 	std::vector<Pixel *> m_liquid;
 };

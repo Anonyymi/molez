@@ -23,7 +23,7 @@ namespace Math
 	{
 	public:
 		SimplexGen(
-			uint32_t seed
+			uint32_t seed = NULL
 		) :
 			m_p(256),
 			m_rng(),
@@ -62,8 +62,8 @@ namespace Math
 			float G = 0.211324865f;						// G = ((n + 1) - sqrt(n + 1)) / 6 = F / (1 + 2 * K)
 			float x_ = x + (x + y) * F;					// An lattice honeycomb vertex arrangement coords
 			float y_ = y + (x + y) * F;
-			int xb_ = std::floor(x_);					// Skewed unit hypercube
-			int yb_ = std::floor(y_);
+			int xb_ = static_cast<int>(std::floor(x_));	// Skewed unit hypercube
+			int yb_ = static_cast<int>(std::floor(y_));
 
 			// Unskew cell origin back to (x,y) space
 			float t = static_cast<float>(xb_ + yb_) * G;

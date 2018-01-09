@@ -1,0 +1,28 @@
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.lai
+*.la
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Tags
+tags
+TAGS
+
+# CMake related files & folders
+CMakeFiles/
+
+# Visual Studio project related files & folders
+*.VC.opendb
+*.VC.db
+/Release*
+/Debug*
+/.vs
+/bin

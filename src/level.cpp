@@ -172,10 +172,24 @@ void Level::render()
 void Level::update()
 {
 	// Liquid physics
-	for (size_t i = 0; i < m_liquid.size(); i++)
+	size_t liquid_size = m_liquid.size();
+	for (size_t i = 0; i < liquid_size; i++)
 	{
 		// Get liquid pixel at x,y
 		Pixel * p_l = m_liquid[i];
+
+		// If pixel is not a liquid material anymore, erase + skip it
+		if (p_l->m == M_VOID)
+		{
+			// Erase
+			m_liquid.erase(m_liquid.begin() + i);
+
+			// Re-align loop size and iterator value
+			liquid_size--;
+			i--;
+
+			continue;
+		}
 
 		// Neighbor pixel in our bitmap IF IT IS M_VOID
 		Pixel * p_n = nullptr;

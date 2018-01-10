@@ -11,10 +11,10 @@ enum Material_t : uint8_t
 {
 	M_VOID = 0,
 	M_DIRT = 1,
-	M_OBSIDIAN = 2,
+	M_ROCK = 2,
+	M_OBSIDIAN = 3,
 	M_WATER = 20,
-	M_LAVA = 21,
-	M_SLIME = 22
+	M_LAVA = 21
 };
 
 enum Level_t : uint8_t
@@ -24,11 +24,12 @@ enum Level_t : uint8_t
 
 struct Pixel
 {
-	int32_t x, y;
-	Material_t m;
-	int8_t r;
-	int8_t g;
-	int8_t b;
+	uint8_t n;						// noise value
+	int32_t x, y;					// xy-coords in bitmap
+	Material_t m;					// material id
+	int8_t r;						// color: red
+	int8_t g;						// color: green
+	int8_t b;						// color: blue
 };
 
 struct LevelConfig
@@ -51,9 +52,10 @@ public:
 	~Level();
 
 	void generate();
+	void generate_clumps(Material_t m, Material_t t, size_t amount, uint8_t chance, uint8_t n_min = 0, uint8_t n_max = 0);
 	void regenerate(uint32_t seed);
 	void sample_pixel(Pixel * pixel);
-	void alter(Material_t m, int32_t r, int32_t x, int32_t y);
+	void alter(Material_t m, uint8_t r, int32_t x, int32_t y);
 	void render();
 	void update();
 private:

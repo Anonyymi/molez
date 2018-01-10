@@ -1,4 +1,5 @@
 #include "level.h"
+#include <random>
 #include "3rdparty/mlibc_log.h"
 #include "display_manager.h"
 #include "texture_manager.h"
@@ -49,17 +50,12 @@ void Level::generate()
 			// Noise value at x,y, re-scaled from 0,+1 to 0,255
 			int n_ivalue = static_cast<int>(n_value * 255.0f);
 
+			pixel->n = static_cast<uint8_t>(n_ivalue);
+
 			// Select material
 			if (n_value <= 0.33f)
 			{
 				pixel->m = M_VOID;
-
-				// Is this liquid or not?
-				int rng_val = RNG_DIST(RNG);
-				if (rng_val < m_cfg.n_water)
-				{
-					pixel->m = M_WATER;
-				}
 			}
 			else if (n_value >= 0.33f)
 			{
@@ -71,7 +67,52 @@ void Level::generate()
 		}
 	}
 
+	// Generate solids
+	generate_clumps(M_ROCK, M_DIRT, 128, RNG_DIST32(RNG) % 191, 128, 255);
+
+	// Generate liquids
+	generate_clumps(M_WATER, M_VOID, 255, m_cfg.n_water);
+	generate_clumps(M_LAVA, M_VOID, 255, m_cfg.n_lava);
+
 	mlibc_inf("Level::generate(). Level generated! Type: %u, width: %zu, height: %zu", m_cfg.type, m_cfg.width, m_cfg.height);
+}
+
+void Level::generate_clumps(Material_t m, Material_t t, size_t amount, uint8_t chance, uint8_t n_min, uint8_t n_max)
+{
+	for (size_t i = 0; i < amount; i++)
+	{
+		uint8_t rng_val = static_cast<uint8_t>(RNG_DIST8(RNG));
+
+		if (rng_val < chance)
+		{
+			// Water insert properties
+			uint8_t r = static_cast<uint8_t>(RNG_DIST8(RNG)) % 16 + 2;
+			int32_t x = RNG_DIST32(RNG) % m_cfg.width;
+			int32_t y = RNG_DIST32(RNG) % m_cfg.height;
+
+			// Get pixel
+			Pixel * p = &m_bitmap[x + y * m_cfg.width];
+
+			// Adjust radius with noise value
+			r += (p->n / 96);
+
+			// Only insert if current pixel is TARGET
+			if (n_min == 0 && n_max == 0)
+			{
+				if (p->m != t)
+					continue;
+			}
+			// Only insert between chosen noise values
+			else
+			{
+				if (p->n < n_min || p->n > n_max)
+					continue;
+			}
+
+			// Alter the level
+			alter(m, r, x, y);
+		}
+	}
 }
 
 void Level::regenerate(uint32_t seed)
@@ -93,14 +134,9 @@ void Level::sample_pixel(Pixel * pixel)
 	// Determine texture/properties by material
 	switch (pixel->m)
 	{
-		case M_DIRT:
-		{
-			argb = TextureManager::sample_texture("DIRT.PNG", pixel->x, pixel->y);
-		} break;
-		case M_OBSIDIAN:
-		{
-			argb = TextureManager::sample_texture("OBSIDIAN.PNG", pixel->x, pixel->y);
-		} break;
+		case M_DIRT:		argb = TextureManager::sample_texture("DIRT.PNG", pixel->x, pixel->y); break;
+		case M_ROCK:		argb = TextureManager::sample_texture("ROCK.PNG", pixel->x, pixel->y); break;
+		case M_OBSIDIAN:	argb = TextureManager::sample_texture("OBSIDIAN.PNG", pixel->x, pixel->y); break;
 		case M_WATER:
 		{
 			argb = TextureManager::sample_texture("WATER.PNG", pixel->x, pixel->y);
@@ -123,7 +159,7 @@ void Level::sample_pixel(Pixel * pixel)
 	pixel->b = (argb & 0x000000FF);
 }
 
-void Level::alter(Material_t m, int32_t r, int32_t x, int32_t y)
+void Level::alter(Material_t m, uint8_t r, int32_t x, int32_t y)
 {
 	// Calculate start coords
 	int32_t x_start = x - r;

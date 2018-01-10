@@ -13,11 +13,12 @@ namespace TextureManager
 	void init()
 	{
 		// Init stb_image
-		stbi_set_flip_vertically_on_load(true);
+		stbi_set_flip_vertically_on_load(false);
 
 		// Pre-load textures
 		load_texture("NULL.PNG");
 		load_texture("DIRT.PNG");
+		load_texture("ROCK.PNG");
 		load_texture("OBSIDIAN.PNG");
 		load_texture("WATER.PNG");
 		load_texture("LAVA.PNG");

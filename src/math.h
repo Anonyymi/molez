@@ -13,8 +13,9 @@ namespace Math
 	// ------------------------------------------------------------------------
 	// -- GLOBAL RANDOM NUMBER GENERATOR
 	// ------------------------------------------------------------------------
-	extern std::mt19937 RNG;							// RNG instance
-	extern std::uniform_int_distribution<> RNG_DIST;	// RNG distribution
+	extern std::mt19937 RNG;									// RNG instance
+	extern std::uniform_int_distribution<> RNG_DIST8;	// RNG distribution, unsigned 8bit
+	extern std::uniform_int_distribution<> RNG_DIST32;	// RNG distribution, signed 32bit
 
 	// ------------------------------------------------------------------------
 	// -- SIMPLEX NOISE IMPLEMENTATION

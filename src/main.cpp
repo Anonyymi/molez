@@ -57,9 +57,9 @@ int main(int argc, char * argv[])
 	level_cfg.type = L_EARTH;
 	level_cfg.width = DisplayManager::ACTIVE_WINDOW->width;
 	level_cfg.height = DisplayManager::ACTIVE_WINDOW->height;
-	level_cfg.n_scale = 0.0075f;
+	level_cfg.n_scale = 0.0099f;
 	level_cfg.n_water = 48;
-	level_cfg.n_lava = 2;
+	level_cfg.n_lava = 16;
 
 	Level level(level_cfg);
 	level.generate();

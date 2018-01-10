@@ -2,6 +2,7 @@
 #include <ctime>
 #include <SDL.h>
 #include "3rdparty/mlibc_log.h"
+#include "input_manager.h"
 #include "display_manager.h"
 #include "audio_manager.h"
 #include "texture_manager.h"
@@ -32,6 +33,9 @@ int main(int argc, char * argv[])
 	}
 	mlibc_inf("::main(). SDL2 Initialized successfully.");
 
+	// Init InputManager
+	InputManager::init();
+
 	// Init DisplayManager
 	DisplayManager::init();
 	DisplayManager::load_window("molez", 640, 360, 2);
@@ -60,25 +64,33 @@ int main(int argc, char * argv[])
 	Level level(level_cfg);
 	level.generate();
 
-	// Keep track of mouse
-	int mouseX = 0, mouseY = 0;
-	bool mouseL = false, mouseR = false, mouseM = false;
-
 	bool running = true;
 	while (running)
 	{
 		// Level draw pixels
-		if (mouseL)
+		if (InputManager::MOUSE_L)
 		{
-			level.alter(M_WATER, 8, mouseX, mouseY);
+			level.alter(M_WATER, 8, InputManager::MOUSE_X, InputManager::MOUSE_Y);
 		}
-		else if (mouseM)
+		else if (InputManager::MOUSE_M)
 		{
-			level.alter(M_LAVA, 8, mouseX, mouseY);
+			level.alter(M_LAVA, 8, InputManager::MOUSE_X, InputManager::MOUSE_Y);
 		}
-		else if (mouseR)
+		else if (InputManager::MOUSE_R)
 		{
-			level.alter(M_VOID, 12, mouseX, mouseY);
+			level.alter(M_VOID, 12, InputManager::MOUSE_X, InputManager::MOUSE_Y);
+		}
+
+		// Program exit
+		if (InputManager::KBOARD[SDLK_ESCAPE])
+		{
+			running = false;
+		}
+
+		// Level reset
+		if (InputManager::KBOARD[SDLK_r])
+		{
+			level.regenerate((uint32_t)time(NULL));
 		}
 
 		// Update level
@@ -98,54 +110,34 @@ int main(int argc, char * argv[])
 			{
 				case SDL_KEYDOWN:
 				{
-					switch (sdl_event.key.keysym.sym)
-					{
-						case SDLK_ESCAPE: running = false; break;
-						case SDLK_r: level.regenerate((uint32_t)time(NULL)); break;
-					} break;
+					InputManager::KBOARD[sdl_event.key.keysym.sym] = true;
+				} break;
+				case SDL_KEYUP:
+				{
+					InputManager::KBOARD[sdl_event.key.keysym.sym] = false;
 				} break;
 				case SDL_MOUSEBUTTONDOWN:
 				{
 					switch (sdl_event.button.button)
 					{
-						case SDL_BUTTON_LEFT:
-						{
-							mouseL = true;
-						} break;
-						case SDL_BUTTON_RIGHT:
-						{
-							mouseR = true;
-						} break;
-						case SDL_BUTTON_MIDDLE:
-						{
-							mouseM = true;
-						} break;
+						case SDL_BUTTON_LEFT:	InputManager::MOUSE_L = true; break;
+						case SDL_BUTTON_RIGHT:	InputManager::MOUSE_R = true; break;
+						case SDL_BUTTON_MIDDLE:	InputManager::MOUSE_M = true; break;
 					}
 				} break;
 				case SDL_MOUSEBUTTONUP:
 				{
 					switch (sdl_event.button.button)
 					{
-						case SDL_BUTTON_LEFT:
-						{
-							mouseL = false;
-						} break;
-						case SDL_BUTTON_RIGHT:
-						{
-							mouseR = false;
-						} break;
-						case SDL_BUTTON_MIDDLE:
-						{
-							mouseM = false;
-						} break;
+						case SDL_BUTTON_LEFT:	InputManager::MOUSE_L = false; break;
+						case SDL_BUTTON_RIGHT:	InputManager::MOUSE_R = false; break;
+						case SDL_BUTTON_MIDDLE:	InputManager::MOUSE_M = false; break;
 					}
 				} break;
 				case SDL_MOUSEMOTION:
 				{
-					mouseX = sdl_event.motion.x / DisplayManager::ACTIVE_WINDOW->scale;
-					mouseY = sdl_event.motion.y / DisplayManager::ACTIVE_WINDOW->scale;
-
-					//mlibc_inf("MouseX: %d, MouseY: %d", mouseX, mouseY);
+					InputManager::MOUSE_X = sdl_event.motion.x / DisplayManager::ACTIVE_WINDOW->scale;
+					InputManager::MOUSE_Y = sdl_event.motion.y / DisplayManager::ACTIVE_WINDOW->scale;
 				} break;
 				case SDL_QUIT:
 				{
@@ -158,8 +150,10 @@ int main(int argc, char * argv[])
 	}
 
 	// Quit gracefully
+	TextureManager::quit();
 	AudioManager::quit();
 	DisplayManager::quit();
+	InputManager::quit();
 	SDL_Quit();
 	mlibc_log_free();
 

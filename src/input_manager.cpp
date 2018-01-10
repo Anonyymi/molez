@@ -11,7 +11,7 @@ namespace InputManager
 	bool MOUSE_M = false;
 
 	// Keyboard
-	bool KBOARD[255] = { false };
+	std::map<int, bool> KBOARD;
 
 	// Init
 	void init()

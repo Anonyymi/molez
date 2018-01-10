@@ -1,6 +1,8 @@
 #ifndef INPUT_MANAGER_H
 #define INPUT_MANAGER_H
 
+#include <map>
+
 namespace InputManager
 {
 
@@ -11,7 +13,7 @@ namespace InputManager
 	extern bool MOUSE_M;
 
 	// Keyboard
-	extern bool KBOARD[255];
+	extern std::map<int, bool> KBOARD;
 
 	// Init
 	void init();

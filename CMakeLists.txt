@@ -1,10 +1,11 @@
 # Force minimum CMake version
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.6 FATAL_ERROR)
 
 # Create and init project
 project(Molez CXX)
 set(DIR_SRC "${PROJECT_SOURCE_DIR}/src")
-set(DIR_DTA "${PROJECT_SOURCE_DIR}/data")
+set(DIR_DTA_NAME "data")
+set(DIR_DTA "${PROJECT_SOURCE_DIR}/${DIR_DTA_NAME}")
 set(DIR_BIN "${PROJECT_SOURCE_DIR}/bin/${CMAKE_GENERATOR}")
 
 if (MSVC)
@@ -47,6 +48,9 @@ source_group ("src" FILES ${SRC_ALL})
 link_directories(${DIR_LIB})
 add_executable(Molez ${SRC_ALL} ${SRC_INC})
 
+# Set default VS_STARTUP_PROJECT
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Molez)
+
 # Setup CXX flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
@@ -58,15 +62,24 @@ target_link_libraries(Molez PUBLIC
   ${SDL2_LIBRARY}
 )
 
+# Set project build config
+add_custom_command(
+	TARGET Molez POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+			${DIR_DTA}
+			${CMAKE_CURRENT_BINARY_DIR}/${DIR_DTA_NAME}
+)
+add_custom_command(
+	TARGET Molez POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+			${DIR_LIB}
+			${CMAKE_CURRENT_BINARY_DIR}
+)
+
 # Set project install config
 install(TARGETS Molez DESTINATION ${DIR_BIN})
 install(DIRECTORY ${DIR_DTA} DESTINATION ${DIR_BIN})
 install(DIRECTORY ${DIR_LIB}/ DESTINATION ${DIR_BIN})
-
-#install(DIRECTORY ${DIR_LIB}/ DESTINATION ${BIN_DIR}) #FILE_MATCHING
-#  PATTERN "*.dll"
-#  PATTERN "*.so"
-#)
 
 # Set project package(s)
 set(CPACK_PACKAGE_NAME "Molez")

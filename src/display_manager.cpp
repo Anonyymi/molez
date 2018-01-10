@@ -1,7 +1,11 @@
 #include "display_manager.h"
-#include <SDL.h>
 #include "3rdparty/mlibc_log.h"
 
+#ifdef __linux__
+#include <SDL2/SDL.h>
+#else
+#include <SDL.h>
+#endif
 namespace DisplayManager
 {
 

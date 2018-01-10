@@ -1,12 +1,17 @@
 #include <iostream>
 #include <ctime>
-#include <SDL.h>
 #include "3rdparty/mlibc_log.h"
 #include "display_manager.h"
 #include "audio_manager.h"
 #include "texture_manager.h"
 #include "level.h"
 #include "math.h"
+
+#ifdef __linux__
+#include <SDL2/SDL.h>
+#else
+#include <SDL.h>
+#endif
 
 mlibc_log_logger * mlibc_log_instance = NULL;
 
@@ -39,11 +44,12 @@ int main(int argc, char * argv[])
 	DisplayManager::clear(0x00000000);
 
 	// Init AudioManager
+	/*
 	AudioManager::init();
 	AudioManager::set_music_volume(64);
 	AudioManager::load_music("INGAME1.MUS");
 	AudioManager::play_music("INGAME1.MUS");
-
+	*/
 	// Init TextureManager
 	TextureManager::init();
 
@@ -158,7 +164,7 @@ int main(int argc, char * argv[])
 	}
 
 	// Quit gracefully
-	AudioManager::quit();
+	//AudioManager::quit();
 	DisplayManager::quit();
 	SDL_Quit();
 	mlibc_log_free();

@@ -7,17 +7,15 @@ set(DIR_SRC "${PROJECT_SOURCE_DIR}/src")
 set(DIR_DTA "${PROJECT_SOURCE_DIR}/data")
 set(DIR_BIN "${PROJECT_SOURCE_DIR}/bin/${CMAKE_GENERATOR}")
 
-if (MSVC)
-  set(DIR_INC "${PROJECT_SOURCE_DIR}/inc")
-  set(DIR_LIB "${PROJECT_SOURCE_DIR}/lib/msvc-x86")
-
-  # SDL2
-  set(SDL2_INCLUDE_DIR ${SDL2_INCLUDE_DIR} "${DIR_INC}")
-  set(SDL2_LIBRARY ${SDL2_LIBRARY} "${DIR_LIB}/SDL2main.lib" "${DIR_LIB}/SDL2.lib" "${DIR_LIB}/SDL2_mixer.lib")
-endif()
-
 # Define used CMake modules
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/CMakeModules")
+
+
+find_package(SDL2 REQUIRED)
+include_directories(${SDL2_INCLUDE_DIRS})
+
+
+
 
 # Enable C++ and C
 enable_language(CXX)
@@ -53,7 +51,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 # Add to-be-linked dependencies
 target_include_directories(Molez PUBLIC "${DIR_INC}")
 target_include_directories (Molez PUBLIC "${SDL2_INCLUDE_DIR}")
-find_package(SDL2 REQUIRED)
 target_link_libraries(Molez PUBLIC
   ${SDL2_LIBRARY}
 )
@@ -61,14 +58,8 @@ target_link_libraries(Molez PUBLIC
 # Set project install config
 install(TARGETS Molez DESTINATION ${DIR_BIN})
 install(DIRECTORY ${DIR_DTA} DESTINATION ${DIR_BIN})
-install(DIRECTORY ${DIR_LIB}/ DESTINATION ${DIR_BIN})
 
-#install(DIRECTORY ${DIR_LIB}/ DESTINATION ${BIN_DIR}) #FILE_MATCHING
-#  PATTERN "*.dll"
-#  PATTERN "*.so"
-#)
 
-# Set project package(s)
 set(CPACK_PACKAGE_NAME "Molez")
 set(CPACK_MONOLITHIC_INSTALL 1)
 include(CPack)

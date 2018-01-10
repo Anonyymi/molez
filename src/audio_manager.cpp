@@ -1,7 +1,6 @@
+/*
 #include "audio_manager.h"
-#include <SDL.h>
-#include <SDL_mixer.h>
-#include "3rdparty/mlibc_log.h"
+
 
 namespace AudioManager
 {
@@ -90,3 +89,4 @@ namespace AudioManager
 	}
 
 }
+*/

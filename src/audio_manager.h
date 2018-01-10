@@ -1,8 +1,17 @@
+/*
 #ifndef AUDIO_MANAGER_H
 #define AUDIO_MANAGER_H
 
 #include <string>
 #include <map>
+
+#include "3rdparty/mlibc_log.h"
+
+#ifdef __linux__
+#include <SDL2/SDL.h>
+#else
+#include <SDL.h>
+#endif
 
 typedef struct _Mix_Music Mix_Music;
 
@@ -28,3 +37,4 @@ void set_music_volume(int volume);
 
 
 #endif // AUDIO_MANAGER_H
+*/

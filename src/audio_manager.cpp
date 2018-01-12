@@ -6,7 +6,7 @@
 namespace AudioManager
 {
 
-	extern const std::string DATA_DIR = "./data/sfx/";
+	const std::string DATA_DIR = "./data/sfx/";
 	Mix_Music * PLAYING_MUSIC = NULL;
 	std::map<std::string, Mix_Music *> LOADED_MUSIC = std::map<std::string, Mix_Music *>();
 

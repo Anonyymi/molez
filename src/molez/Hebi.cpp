@@ -13,6 +13,11 @@ Hebi(){
 Hebi::
 ~Hebi(){
     tPool.quit();
+    TextureManager::quit();
+	//AudioManager::quit();
+	DisplayManager::quit();
+	InputManager::quit();
+	SDL_Quit();
 
 }
 
@@ -21,8 +26,52 @@ Hebi::
 bool Hebi::
 init(EngineConfig cfg){
     engineCfg = cfg;
-    tPool.spawn(engineCfg.threadCount, tPool, *this);
+    
+    int return_code = 0;
 
+	// Init mlibc_log
+	return_code = mlibc_log_init(MLIBC_LOG_LEVEL_DBG);
+	if (return_code != MLIBC_LOG_CODE_OK)
+	{
+		printf("::main(). mlibc_log_init Error: %d", return_code);
+		return return_code;
+	}
+	mlibc_inf("::main(). mlibc_log Initialized successfully.");
+
+	// Init SDL2
+	return_code = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
+	if (return_code != 0)
+	{
+		mlibc_err("::main(). SDL_Init Error: %s", SDL_GetError());
+		return return_code;
+	}
+	mlibc_inf("::main(). SDL2 Initialized successfully.");
+    
+
+	DisplayManager::init();
+	DisplayManager::load_window("molez", 1920, 1080, 2);
+	DisplayManager::activate_window("molez");
+	DisplayManager::clear(0x00000000);
+
+    TextureManager::init();
+    InputManager::init();
+
+
+    LevelConfig level_cfg;
+    level_cfg.seed = 12345;
+	level_cfg.type = L_EARTH;
+	level_cfg.width = DisplayManager::ACTIVE_WINDOW->width;
+	level_cfg.height = DisplayManager::ACTIVE_WINDOW->height;
+	level_cfg.n_scale = 0.0075f;
+	level_cfg.n_water = 48;
+	level_cfg.n_lava = 2;
+	setLevelConfig(level_cfg);
+	levelGenerate();
+
+
+
+
+    tPool.spawn(engineCfg.threadCount, tPool, *this);
 }
 
 void Hebi::
@@ -67,7 +116,6 @@ nextTick(Tick *tick){
     
     level.update();
 
-	// Render level
 	level.render();
 
     if (InputManager::MOUSE_L)
@@ -93,6 +141,7 @@ nextTick(Tick *tick){
     {
         debug = true;
     }
+    //Change tickrate
     if (InputManager::KBOARD[SDLK_j]){
         engineCfg.tickrate++;
     }
@@ -100,6 +149,16 @@ nextTick(Tick *tick){
     if (InputManager::KBOARD[SDLK_k]){
         if(engineCfg.tickrate>1)
             engineCfg.tickrate--;
+    }
+
+    //Change fps
+    if (InputManager::KBOARD[SDLK_u]){
+            engineCfg.fps++;
+    }
+    if (InputManager::KBOARD[SDLK_i]){
+        if(engineCfg.fps>1){
+            engineCfg.fps--;
+        }
     }
 
     // Program exit

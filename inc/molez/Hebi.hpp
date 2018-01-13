@@ -6,6 +6,9 @@ Made by xoxo 2018-
 #define HEBI_HPP
 #include "level.h"
 #include "input_manager.h"
+#include "display_manager.h"
+#include "texture_manager.h"
+#include "3rdparty/mlibc_log.h"
 #include "Tick.hpp"
 #include <vector>
 #include <thread>

@@ -126,31 +126,44 @@ void Level::regenerate(uint32_t seed)
 	generate();
 }
 
-void Level::sample_pixel(Pixel * pixel)
+void Level::sample_pixel(Pixel * pixel, int32_t offset_x, int32_t offset_y)
 {
 	// Final int32_t HEX ARGB color
 	int32_t argb = 0;
 
+	// Get sample xy-coords
+	int32_t s_x = pixel->x - offset_x;
+	int32_t s_y = pixel->y - offset_y;
+
 	// Determine texture/properties by material
 	switch (pixel->m)
 	{
-		case M_DIRT:		argb = TextureManager::sample_texture("DIRT.PNG", pixel->x, pixel->y); break;
-		case M_ROCK:		argb = TextureManager::sample_texture("ROCK.PNG", pixel->x, pixel->y); break;
-		case M_OBSIDIAN:	argb = TextureManager::sample_texture("OBSIDIAN.PNG", pixel->x, pixel->y); break;
+		case M_VOID:		argb = 0xFF000000; break;
+		case M_DIRT:		argb = TextureManager::sample_texture("DIRT.PNG", s_x, s_y); break;
+		case M_ROCK:		argb = TextureManager::sample_texture("ROCK1.PNG", s_x, s_y); break;
+		case M_OBSIDIAN:	argb = TextureManager::sample_texture("OBSIDIAN.PNG", s_x, s_y); break;
+		case M_MOSS:		argb = TextureManager::sample_texture("MOSS.PNG", s_x, s_y); break;
 		case M_WATER:
 		{
-			argb = TextureManager::sample_texture("WATER.PNG", pixel->x, pixel->y);
+			argb = TextureManager::sample_texture("WATER.PNG", s_x, pixel->y);
 
 			// This is a liquid
 			m_liquid.push_back(pixel);
 		} break;
 		case M_LAVA:
 		{
-			argb = TextureManager::sample_texture("LAVA.PNG", pixel->x, pixel->y);
+			argb = TextureManager::sample_texture("LAVA.PNG", s_x, pixel->y);
 
 			// This is a liquid
 			m_liquid.push_back(pixel);
 		} break;
+	}
+
+	// Alpha 0x00 is transparency
+	uint8_t a = (argb & 0xFF000000) >> 24;
+	if (a == 0x00)
+	{
+		return;
 	}
 
 	// Assign new RGB values

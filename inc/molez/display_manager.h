@@ -2,6 +2,7 @@
 #define DISPLAY_MANAGER_H
 
 #include <string>
+#include <vector>
 #include <map>
 
 typedef struct SDL_Window SDL_Window;
@@ -21,8 +22,18 @@ namespace DisplayManager
 		int32_t * framebuffer;
 	};
 
+	struct Camera
+	{
+		int x, y;					// xy-translation
+		int speed;					// pixels per tick
+
+		// TODO; Viewport dimensions (split-screen)
+	};
+
 	extern Window * ACTIVE_WINDOW;
+	extern Camera * ACTIVE_CAMERA;
 	extern std::map<std::string, Window *> LOADED_WINDOWS;
+	extern std::map<std::string, Camera *> LOADED_CAMERAS;
 
 	// Init
 	void init();
@@ -38,6 +49,16 @@ namespace DisplayManager
 		int scale = 1
 	);
 	void activate_window(const std::string & title);
+
+	// Cameras
+	Camera * load_camera(
+		const std::string & identifier,
+		int x = 0,
+		int y = 0,
+		int speed = 1
+	);
+	void activate_camera(const std::string & identifier);
+
 	void render();
 	void clear(const int32_t argb);
 	void set_pixel(size_t x, size_t y, uint8_t r, uint8_t g, uint8_t b);

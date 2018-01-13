@@ -9,8 +9,10 @@
 namespace DisplayManager
 {
 
-	extern Window * ACTIVE_WINDOW = NULL;
-	extern std::map<std::string, Window *> LOADED_WINDOWS = std::map<std::string, Window *>();
+	Window * ACTIVE_WINDOW = NULL;
+	Camera * ACTIVE_CAMERA = NULL;
+	std::map<std::string, Window *> LOADED_WINDOWS = std::map<std::string, Window *>();
+	std::map<std::string, Camera *> LOADED_CAMERAS = std::map<std::string, Camera *>();
 
 	// Init
 	void init()
@@ -133,6 +135,44 @@ namespace DisplayManager
 		}
 	}
 
+	// Cameras
+	Camera * load_camera(
+		const std::string & identifier,
+		int x,
+		int y,
+		int speed
+	)
+	{
+		if (LOADED_CAMERAS.count(identifier) == 0)
+		{
+			Camera * camera = new Camera();
+
+			camera->x = x;
+			camera->y = y;
+			camera->speed = speed;
+
+			LOADED_CAMERAS[identifier] = camera;
+
+			mlibc_inf("DisplayManager::load_camera(%s). Loaded a new camera into memory.", identifier.c_str());
+		}
+
+		return LOADED_CAMERAS[identifier];
+	}
+
+	void activate_camera(const std::string & identifier)
+	{
+		if (LOADED_CAMERAS.count(identifier) > 0)
+		{
+			ACTIVE_CAMERA = LOADED_CAMERAS[identifier];
+
+			mlibc_inf("DisplayManager::activate_camera(%s). Selected a new active camera.", identifier.c_str());
+		}
+		else
+		{
+			mlibc_err("DisplayManager::activate_camera(%s). Error activating camera!", identifier.c_str());
+		}
+	}
+
 	void render()
 	{
 		if (ACTIVE_WINDOW != nullptr)
@@ -158,6 +198,7 @@ namespace DisplayManager
 		if (ACTIVE_WINDOW != nullptr)
 		{
 			size_t resolution = static_cast<size_t>(ACTIVE_WINDOW->width * ACTIVE_WINDOW->height);
+
 			for (size_t i = 0; i < resolution; i++)
 				ACTIVE_WINDOW->framebuffer[i] = argb;
 		}
@@ -171,6 +212,22 @@ namespace DisplayManager
 	{
 		if (ACTIVE_WINDOW != nullptr)
 		{
+			// Calculate camera translation
+			if (ACTIVE_CAMERA != nullptr)
+			{
+				// Camera translation
+				x -= ACTIVE_CAMERA->x;
+				y += ACTIVE_CAMERA->y;
+
+				// Window offset
+				x += ACTIVE_WINDOW->width / 2;
+				y += ACTIVE_WINDOW->height / 2;
+			}
+
+			// Prevent altering memory outside fbo
+			if (x < 0 || x >= ACTIVE_WINDOW->width || y < 0 || y >= ACTIVE_WINDOW->height)
+				return;
+
 			auto argb = ((r << 16) | (g << 8) | b);
 			ACTIVE_WINDOW->framebuffer[x + y * ACTIVE_WINDOW->width] = argb;
 		}

@@ -13,6 +13,7 @@ enum Material_t : uint8_t
 	M_DIRT = 1,
 	M_ROCK = 2,
 	M_OBSIDIAN = 3,
+	M_MOSS = 4,
 	M_WATER = 20,
 	M_LAVA = 21
 };
@@ -61,7 +62,7 @@ public:
 	void generate();
 	void generate_clumps(Material_t m, Material_t t, size_t amount, uint8_t chance, uint8_t n_min = 0, uint8_t n_max = 0);
 	void regenerate(uint32_t seed);
-	void sample_pixel(Pixel * pixel);
+	void sample_pixel(Pixel * pixel, int32_t offset_x = 0, int32_t offset_y = 0);
 	void alter(Material_t m, uint8_t r, int32_t x, int32_t y);
 	void render();
 	void update();

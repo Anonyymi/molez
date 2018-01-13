@@ -18,8 +18,9 @@ namespace TextureManager
 		// Pre-load textures
 		load_texture("NULL.PNG");
 		load_texture("DIRT.PNG");
-		load_texture("ROCK.PNG");
+		load_texture("ROCK1.PNG");
 		load_texture("OBSIDIAN.PNG");
+		load_texture("MOSS.PNG");
 		load_texture("WATER.PNG");
 		load_texture("LAVA.PNG");
 
@@ -65,14 +66,19 @@ namespace TextureManager
 			{
 				for (int32_t j = 0; j < texture->width; j++)
 				{
-					// Get RGB values, let A alone for now...
+					// Get RGBA values
 					int32_t index = j + i * texture->width;
 					uint8_t r = data[(index * 4 + 0) % (texture->width * texture->height * 4)];
 					uint8_t g = data[(index * 4 + 1) % (texture->width * texture->height * 4)];
 					uint8_t b = data[(index * 4 + 2) % (texture->width * texture->height * 4)];
+					uint8_t a = 255;
+					if (texture->components >= 4)
+					{
+						a = data[(index * 4 + 3) % (texture->width * texture->height * 4)];
+					}
 
-					// Store the RGB values to our data vector as ARGB
-					texture->data[j + i * texture->width] = ((r << 16) | (g << 8) | b);
+					// Store the RGBA values to our data vector as ARGB
+					texture->data[j + i * texture->width] = ((a << 24) | (r << 16) | (g << 8) | b);
 				}
 			}
 

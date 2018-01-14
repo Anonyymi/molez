@@ -15,6 +15,7 @@ Made by xoxo 2018-
 #include <thread>
 #include <unistd.h>
 #include "queue.hpp"
+#include <atomic>
 
 #ifdef __linux__
 #include <SDL2/SDL.h>
@@ -31,8 +32,11 @@ class Hebi;
 class ThreadPool{
 private:
     std::vector<std::thread> threads;
-    int numThreads;
+    
+    std::atomic_uint threadCount;
+    std::atomic_uint idleCount;
     bool running;
+    std::atomic_bool busy;
 public:
 
     ThreadPool();
@@ -41,6 +45,12 @@ public:
     //Start n amount of threads
     bool spawn(int32_t n, ThreadPool &tPool, Hebi &engine, HQueue &que);
     bool isRunning();
+    uint32_t idleThreads();
+    uint32_t busyThreads();
+    uint32_t totalThreads();
+    bool isBusy();
+    void threadIdle(std::thread::id);
+    void threadBusy(std::thread::id);
     void quit();
 
 

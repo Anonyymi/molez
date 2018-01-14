@@ -175,7 +175,8 @@ uint32_t Level::sample_pixel(uint32_t s_y, uint32_t s_x){
 	uint32_t argb = 0;
 
 	// Determine texture/properties by material
-	switch (materialmap[s_y][s_x]){
+	switch (materialmap[s_y][s_x])
+	{
 		case M_VOID:		argb = 0xFF000000; break;
 		case M_DIRT:		argb = TextureManager::sample_texture("DIRT.PNG", s_x, s_y); break;
 		case M_ROCK:		argb = TextureManager::sample_texture("ROCK1.PNG", s_x, s_y); break;
@@ -211,7 +212,7 @@ void Level::alter(Material_t m, uint8_t r, int32_t x, int32_t y)
 					continue;
 				}
 
-				materialmap[i][j] = M_WATER;
+				materialmap[i][j] = m;
 				bitmap[i][j].rgba = sample_pixel(i,j);
 			}
 		}
@@ -234,13 +235,14 @@ void Level::swapPixel(uint32_t y0,uint32_t x0,uint32_t y1,uint32_t x1){
 
 void Level::update(uint32_t y, uint32_t x){
 	uint32_t tmp;
-	if(materialmap[y][x] == M_WATER){
+	//TODO: Make a liquid property
+	if(materialmap[y][x] == M_WATER || materialmap[y][x] == M_LAVA){
 		tmp = bitmap[y][x].rgba;
 		updateGravity(y,x);
 		switch(gravitymap[y][x]){
 			case DOWN:
 				if(materialmap[y+1][x] == M_VOID){						
-					materialmap[y+1][x] = M_WATER;
+					materialmap[y+1][x] = materialmap[y][x];
 					materialmap[y][x] = M_VOID;
 					
 					bitmap[y][x].rgba = 0x00000000;
@@ -249,7 +251,7 @@ void Level::update(uint32_t y, uint32_t x){
 				break;
 			case DOWNLEFT:
 				if(materialmap[y+1][x-1] == M_VOID){						
-					materialmap[y+1][x-1] = M_WATER;
+					materialmap[y+1][x-1] = materialmap[y][x];
 					materialmap[y][x] = M_VOID;
 					bitmap[y][x].rgba = 0x00000000;
 					bitmap[y+1][x-1].rgba = tmp;
@@ -257,7 +259,7 @@ void Level::update(uint32_t y, uint32_t x){
 				break;
 			case DOWNRIGHT:
 				if(materialmap[y+1][x+1] == M_VOID){						
-					materialmap[y+1][x+1] = M_WATER;
+					materialmap[y+1][x+1] = materialmap[y][x];
 					materialmap[y][x] = M_VOID;
 					bitmap[y][x].rgba = 0x00000000;
 					bitmap[y+1][x+1].rgba = tmp;
@@ -265,7 +267,7 @@ void Level::update(uint32_t y, uint32_t x){
 				break;
 			case RIGHT:
 				if(materialmap[y][x+1] == M_VOID){						
-					materialmap[y][x+1] = M_WATER;
+					materialmap[y][x+1] = materialmap[y][x];
 					materialmap[y][x] = M_VOID;
 					bitmap[y][x].rgba = 0x00000000;
 					bitmap[y][x+1].rgba = tmp;
@@ -273,7 +275,7 @@ void Level::update(uint32_t y, uint32_t x){
 				break;
 			case LEFT:
 				if(materialmap[y][x-1] == M_VOID){						
-					materialmap[y][x-1] = M_WATER;
+					materialmap[y][x-1] = materialmap[y][x];
 					materialmap[y][x] = M_VOID;
 					bitmap[y][x].rgba = 0x00000000;
 					bitmap[y][x-1].rgba = tmp;

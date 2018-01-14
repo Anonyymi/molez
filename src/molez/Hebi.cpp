@@ -194,12 +194,11 @@ nextTick(Tick *tick){
     uint32_t *wurk = (uint32_t*)malloc(sizeof(uint32_t));
     wurk[0] = FLUID;
     workQueue.push(wurk);
+    usleep(300);
 
-
-    
-
-
-
+    while(tPool.isBusy()){
+        usleep(50);
+    }
 
     for(int i=1070;i>0; i--){            
 	    level.render(i);
@@ -210,7 +209,7 @@ nextTick(Tick *tick){
 
     movePlayer(tick);
 
-
+    
     //
     //level.alter(M_WATER, 5, player.getX(), player.getY());
 
@@ -220,6 +219,7 @@ nextTick(Tick *tick){
 
     }
 
+   
     tick->count++;
 
     if (InputManager::KBOARD[SDLK_ESCAPE])
@@ -228,11 +228,42 @@ nextTick(Tick *tick){
         return true;
 }
 
+uint32_t ThreadPool::
+idleThreads(){
+    return idleCount;
+}
+
+
+uint32_t ThreadPool::
+busyThreads(){
+    return threadCount - idleCount;
+}
+
+uint32_t ThreadPool::
+totalThreads(){
+    return threadCount;
+}
+
+bool ThreadPool::
+isBusy(){
+    return busy;
+}
+
+void ThreadPool::
+threadIdle(std::thread::id){
+    busy = false;
+}
+void ThreadPool::
+threadBusy(std::thread::id){
+    busy = true;
+}
 
 void worker(ThreadPool &tPool, Hebi &engine, HQueue &que){
+    tPool.threadIdle(std::this_thread::get_id());
     while(tPool.isRunning()){
         uint32_t *wurk = que.pull();
         if(wurk != NULL){
+            tPool.threadBusy(std::this_thread::get_id());
             switch(wurk[0]){
                 case FLUID:
                     for(int i=1070;i>1;i--){
@@ -241,6 +272,8 @@ void worker(ThreadPool &tPool, Hebi &engine, HQueue &que){
                         }
                     }
             }
+            tPool.threadIdle(std::this_thread::get_id());
+            free(wurk);
         }
     }
 }
@@ -263,8 +296,10 @@ isRunning(){
 
 bool ThreadPool::
 spawn(int32_t n, ThreadPool &tPool, Hebi &engine, HQueue &que){
-    for(int i=0;i<n;i++)
+    for(int i=0;i<n;i++){
         threads.push_back(std::thread(worker, std::ref(tPool), std::ref(engine),std::ref(que)));
+        threadCount++;
+    }
     return true;
 }
 

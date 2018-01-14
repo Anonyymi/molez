@@ -6,8 +6,13 @@
 
 
 
-enum Material_t : uint8_t
-{
+enum MaterialState_t : uint8_t{
+	SOLID = 0,
+	LIQUID = 1,
+	GAS = 3
+};
+
+enum Material_t : uint8_t{
 	M_VOID = 0,
 	M_DIRT = 1,
 	M_ROCK = 2,
@@ -16,5 +21,11 @@ enum Material_t : uint8_t
 	M_WATER = 20,
 	M_LAVA = 21
 };
+
+typedef struct Material{
+	Material_t id;
+	MaterialState_t state;
+	//Add more identifiers here
+} Material;
 
 #endif

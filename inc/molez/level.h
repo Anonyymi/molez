@@ -57,6 +57,14 @@ typedef enum Direction : uint8_t{
 	STAY
 } Direction;
 
+typedef struct Area{
+	//
+	Rectangle dimensions;
+	Material **materialmap;
+	Pixel **bitmap;
+	Direction **gravitymap;
+} Area;
+
 
 class Level
 {
@@ -66,16 +74,16 @@ public:
 	Level();
 	~Level();
 
-	void freeBuffers();
-	void allocateBuffers();
+	void freeAreaBuffers();
+	void allocateAreaBuffers();
 
 	void setConfig(LevelConfig cfg);
 	void generate();
-	void updateGravity(uint32_t y,uint32_t x);
+	void updateGravity(uint32_t y,uint32_t x, Area &area);
 	void generateGravitymap(uint32_t height);
 	void generate_clumps(Material_t m, Material_t t, size_t amount, uint8_t chance, uint8_t n_min = 0, uint8_t n_max = 0);
 	void regenerate(uint32_t seed);
-	uint32_t sample_pixel(uint32_t s_y, uint32_t s_x);
+	uint32_t sample_pixel(uint32_t s_y, uint32_t s_x, Area &area);
 	void alter(Material_t m, uint8_t r, int32_t x, int32_t y);
 	void swapPixel(uint32_t y0,uint32_t x0,uint32_t y1,uint32_t x1);
 	void render(uint32_t height);
@@ -84,11 +92,7 @@ public:
 private:
 	LevelConfig levelCfg;
 	SimplexGen m_simplex;
-	Material_t **materialmap;
-	Pixel **bitmap;
-	Direction **gravitymap;
-
-	Rectangle areas;
+	std::vector<Area> areas;
 };
 
 

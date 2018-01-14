@@ -14,6 +14,7 @@ Made by xoxo 2018-
 #include <vector>
 #include <thread>
 #include <unistd.h>
+#include "queue.hpp"
 
 #ifdef __linux__
 #include <SDL2/SDL.h>
@@ -38,7 +39,7 @@ public:
     ~ThreadPool();
 
     //Start n amount of threads
-    bool spawn(int32_t n, ThreadPool &tPool, Hebi &engine);
+    bool spawn(int32_t n, ThreadPool &tPool, Hebi &engine, HQueue &que);
     bool isRunning();
     void quit();
 
@@ -63,6 +64,8 @@ private:
     bool debug = false;
     Player player;
     LevelConfig level_cfg;
+    HQueue workQueue;
+
 
 public:
     
@@ -78,6 +81,7 @@ public:
     void processInput(Tick *tick);
     void movePlayer(Tick *tick);
     bool nextTick(Tick *tick);
+    void fluidSim(uint32_t y, uint32_t x);
 
     void threadWork();
 
@@ -96,9 +100,12 @@ typedef struct ThreadData{
 
 }ThreadData;
 
+typedef enum Work_t : uint32_t{
+    FLUID = 100,
+
+} Work_t;
 
 
-
-void worker(ThreadPool &tPool, Hebi &engine);
+void worker(ThreadPool &tPool, Hebi &engine, HQueue &que);
 
 #endif

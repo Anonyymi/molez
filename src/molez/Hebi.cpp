@@ -73,7 +73,8 @@ init(EngineConfig cfg){
 
 
 
-    tPool.spawn(engineCfg.threadCount, tPool, *this);
+
+    tPool.spawn(engineCfg.threadCount, tPool, *this, workQueue);
 }
 
 void Hebi::
@@ -93,7 +94,7 @@ printDebugInformation(){
 
 void Hebi::
 threadWork(){
-    //
+
 }
 
 uint32_t Hebi::
@@ -179,21 +180,31 @@ movePlayer(Tick *tick){
     player.move(tick->move.x, tick->move.y);
 }
 
+void Hebi::
+fluidSim(uint32_t y, uint32_t x){
+    level.update(y,x);
+}
+
+
 
 bool Hebi::
 nextTick(Tick *tick){
+
+
+    uint32_t *wurk = (uint32_t*)malloc(sizeof(uint32_t));
+    wurk[0] = FLUID;
+    workQueue.push(wurk);
+
+
     
 
 
-    for(int i=1070;i>0; i--){
-               
+
+
+    for(int i=1070;i>0; i--){            
 	    level.render(i);
-        //level.generateGravitymap(i);
-        level.update(i);
-    }
 
-    
-    debug = false;
+    }
 
     processInput(tick);
 
@@ -218,14 +229,19 @@ nextTick(Tick *tick){
 }
 
 
-void worker(ThreadPool &tPool, Hebi &engine){
+void worker(ThreadPool &tPool, Hebi &engine, HQueue &que){
     while(tPool.isRunning()){
-        
-        usleep(100);
-        engine.threadWork();
-        //Magic happens here. Thread shouldn't be able to access everything but its ok for now
-        
-
+        uint32_t *wurk = que.pull();
+        if(wurk != NULL){
+            switch(wurk[0]){
+                case FLUID:
+                    for(int i=1070;i>1;i--){
+                        for(int j = 1910; j>1;j--){
+                            engine.fluidSim(i,j);
+                        }
+                    }
+            }
+        }
     }
 }
 
@@ -246,9 +262,9 @@ isRunning(){
 
 
 bool ThreadPool::
-spawn(int32_t n, ThreadPool &tPool, Hebi &engine){
+spawn(int32_t n, ThreadPool &tPool, Hebi &engine, HQueue &que){
     for(int i=0;i<n;i++)
-        threads.push_back(std::thread(worker, std::ref(tPool), std::ref(engine)));
+        threads.push_back(std::thread(worker, std::ref(tPool), std::ref(engine),std::ref(que)));
     return true;
 }
 

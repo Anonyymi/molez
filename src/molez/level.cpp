@@ -221,13 +221,6 @@ void Level::alter(Material_t m, uint8_t r, int32_t x, int32_t y)
 void Level::render(uint32_t height){
 	for (uint32_t i = 0; i < levelCfg.width; i++){
 		Pixel pixel = bitmap[height][i];
-		//pixel.rgba = sample_pixel(height,i);
-		/*
-		pixel.r = gravitymap[height][i] * 2;
-		pixel.g = gravitymap[height][i] * 3;
-		pixel.b = gravitymap[height][i] * 2;
-		*/
-		// Set pixel to window fbo at x,y
 		DisplayManager::set_pixel(i, height, pixel.b, pixel.g, pixel.r);
 	}
 }
@@ -239,57 +232,56 @@ void Level::swapPixel(uint32_t y0,uint32_t x0,uint32_t y1,uint32_t x1){
 	bitmap[y1][y1].rgba = rgbatmp;
 }
 
-void Level::update(uint32_t height){
-
-	for(uint32_t i = 1; i < levelCfg.width;i++){
-		if(materialmap[height][i] == M_WATER){
-			updateGravity(height,i);
-			switch(gravitymap[height][i]){
-				case DOWN:
-					if(materialmap[height+1][i] == M_VOID){						
-						materialmap[height+1][i] = M_WATER;
-						materialmap[height][i] = M_VOID;
-						bitmap[height][i].rgba = sample_pixel(height,i);
-						bitmap[height+1][i].rgba = sample_pixel(height+1,i);
-					}
-					break;
-				case DOWNLEFT:
-					if(materialmap[height+1][i-1] == M_VOID){						
-						materialmap[height+1][i-1] = M_WATER;
-						materialmap[height][i] = M_VOID;
-						bitmap[height][i].rgba = sample_pixel(height,i);
-						bitmap[height+1][i-1].rgba = sample_pixel(height+1,i-1);
-					}
-					break;
-				case DOWNRIGHT:
-					if(materialmap[height+1][i+1] == M_VOID){						
-						materialmap[height+1][i+1] = M_WATER;
-						materialmap[height][i] = M_VOID;
-						bitmap[height][i].rgba = sample_pixel(height,i);
-						bitmap[height+1][i+1].rgba = sample_pixel(height+1,i+1);
-					}
-					break;
-				case RIGHT:
-					if(materialmap[height][i+1] == M_VOID){						
-						materialmap[height][i+1] = M_WATER;
-						materialmap[height][i] = M_VOID;
-						bitmap[height][i].rgba = sample_pixel(height,i);
-						bitmap[height][i+1].rgba = sample_pixel(height,i+1);
-					}
-					break;
-				case LEFT:
-					if(materialmap[height][i-1] == M_VOID){						
-						materialmap[height][i-1] = M_WATER;
-						materialmap[height][i] = M_VOID;
-						bitmap[height][i].rgba = sample_pixel(height,i);
-						bitmap[height][i-1].rgba = sample_pixel(height,i-1);
-					}
-					break;
-			}
-			
+void Level::update(uint32_t y, uint32_t x){
+	uint32_t tmp;
+	if(materialmap[y][x] == M_WATER){
+		tmp = bitmap[y][x].rgba;
+		updateGravity(y,x);
+		switch(gravitymap[y][x]){
+			case DOWN:
+				if(materialmap[y+1][x] == M_VOID){						
+					materialmap[y+1][x] = M_WATER;
+					materialmap[y][x] = M_VOID;
+					
+					bitmap[y][x].rgba = 0x00000000;
+					bitmap[y+1][x].rgba = tmp;
+				}
+				break;
+			case DOWNLEFT:
+				if(materialmap[y+1][x-1] == M_VOID){						
+					materialmap[y+1][x-1] = M_WATER;
+					materialmap[y][x] = M_VOID;
+					bitmap[y][x].rgba = 0x00000000;
+					bitmap[y+1][x-1].rgba = tmp;
+				}
+				break;
+			case DOWNRIGHT:
+				if(materialmap[y+1][x+1] == M_VOID){						
+					materialmap[y+1][x+1] = M_WATER;
+					materialmap[y][x] = M_VOID;
+					bitmap[y][x].rgba = 0x00000000;
+					bitmap[y+1][x+1].rgba = tmp;
+				}
+				break;
+			case RIGHT:
+				if(materialmap[y][x+1] == M_VOID){						
+					materialmap[y][x+1] = M_WATER;
+					materialmap[y][x] = M_VOID;
+					bitmap[y][x].rgba = 0x00000000;
+					bitmap[y][x+1].rgba = tmp;
+				}
+				break;
+			case LEFT:
+				if(materialmap[y][x-1] == M_VOID){						
+					materialmap[y][x-1] = M_WATER;
+					materialmap[y][x] = M_VOID;
+					bitmap[y][x].rgba = 0x00000000;
+					bitmap[y][x-1].rgba = tmp;
+				}
+				break;
 		}
-
+		
 	}
 
-
 }
+

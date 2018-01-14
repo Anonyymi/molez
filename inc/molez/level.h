@@ -79,7 +79,7 @@ public:
 	void alter(Material_t m, uint8_t r, int32_t x, int32_t y);
 	void swapPixel(uint32_t y0,uint32_t x0,uint32_t y1,uint32_t x1);
 	void render(uint32_t height);
-	void update(uint32_t height);
+	void update(uint32_t y,uint32_t x);
 
 private:
 	LevelConfig levelCfg;

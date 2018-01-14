@@ -75,7 +75,7 @@ int main(int argc, char * argv[])
 	int return_code = 0;
 
 
-	engine_cfg.threadCount = 4;
+	engine_cfg.threadCount = 1;
 	engine_cfg.tickrate = 60;
 	engine_cfg.fps = 60;
 	engine_cfg.cappedFps = true;

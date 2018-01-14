@@ -7,6 +7,7 @@
 #include "audio_manager.h"
 #include "texture_manager.h"
 #include "level.h"
+#include "menu.h"
 #include "math.h"
 
 mlibc_log_logger * mlibc_log_instance = NULL;
@@ -38,18 +39,16 @@ int main(int argc, char * argv[])
 
 	// Init DisplayManager (molez resolution = 640x467 in DOS)
 	DisplayManager::init();
-	DisplayManager::load_window("molez", 320, 240, 2);
+	DisplayManager::load_window("molez", 640, 467, 1);
 	DisplayManager::activate_window("molez");
 	DisplayManager::clear(0x00000000);
 	DisplayManager::load_camera("main", 0, 0, 5);
 	DisplayManager::activate_camera("main");
-	DisplayManager::load_camera("menu", 0, 0, 0);
 
 	// Init AudioManager
 	AudioManager::init();
 	AudioManager::set_music_volume(64);
-	AudioManager::load_music("MENU.MUS");
-	//AudioManager::play_music("MENU.MUS");
+	//AudioManager::play_music("INGAME1.MUS");
 
 	// Init TextureManager
 	TextureManager::init();
@@ -66,6 +65,13 @@ int main(int argc, char * argv[])
 
 	Level level(level_cfg);
 	level.generate();
+
+	// Test menu system
+	Menu menu("Molez");
+	menu.add_item(new MenuItem("NEW GAME", MI_EMPTY, nullptr, nullptr));
+	menu.add_item(new MenuItem("REGEN LEVEL", MI_EMPTY, nullptr, nullptr));
+	menu.add_item(new MenuItem("GAME INFO", MI_EMPTY, nullptr, nullptr));
+	menu.add_item(new MenuItem("EXIT", MI_EMPTY, nullptr, nullptr));
 
 	// Center main camera
 	DisplayManager::ACTIVE_CAMERA->x += level_cfg.width / 2;
@@ -125,14 +131,15 @@ int main(int argc, char * argv[])
 		// Update level
 		level.update();
 
+		// Update menu
+		menu.update();
+
 		// Render level
 		level.render();
 
-		// Render test elements (maybe a menu later)
+		// Render menu
 		DisplayManager::ACTIVE_CAMERA = nullptr;
-		DisplayManager::set_rect(0, 0, 128, 128, 0, 0, 0, 128);
-		DisplayManager::set_rect(0, 0, 64, 64, 0, 0, 0, 32);
-		DisplayManager::set_rect(64, 64, 128, 32, 0, 0, 0, 190);
+		menu.render();
 		DisplayManager::activate_camera("main");
 
 		// Update screen fbo

@@ -9,6 +9,11 @@ typedef struct SDL_Window SDL_Window;
 typedef struct SDL_Renderer SDL_Renderer;
 typedef struct SDL_Texture SDL_Texture;
 
+namespace TextureManager
+{
+	struct Font;
+}
+
 namespace DisplayManager
 {
 
@@ -61,8 +66,37 @@ namespace DisplayManager
 
 	void render();
 	void clear(const int32_t argb);
-	void set_pixel(size_t x, size_t y, uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255);
-	void set_rect(size_t x, size_t y, size_t w, size_t h, uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255);
+	void set_pixel(
+		size_t x,
+		size_t y,
+		uint8_t r,
+		uint8_t g,
+		uint8_t b,
+		uint8_t a = 255,
+		bool grey = false
+	);
+	void set_rect(
+		size_t x,
+		size_t y,
+		size_t w,
+		size_t h,
+		uint8_t r,
+		uint8_t g,
+		uint8_t b,
+		uint8_t a = 255,
+		bool grey = false
+	);
+	void set_text(
+		size_t x,
+		size_t y,
+		size_t w,
+		size_t h,
+		std::string text,
+		uint8_t r,
+		uint8_t g,
+		uint8_t b,
+		TextureManager::Font * font
+	);
 
 }
 

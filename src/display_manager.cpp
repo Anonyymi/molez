@@ -1,6 +1,7 @@
 #include "display_manager.h"
 #include <SDL.h>
 #include "3rdparty/mlibc_log.h"
+#include "texture_manager.h"
 #include "math.h"
 
 namespace DisplayManager
@@ -203,7 +204,15 @@ namespace DisplayManager
 		}
 	}
 
-	void set_pixel(size_t x, size_t y, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+	void set_pixel(
+		size_t x,
+		size_t y,
+		uint8_t r,
+		uint8_t g,
+		uint8_t b,
+		uint8_t a,
+		bool grey
+	)
 	{
 		if (ACTIVE_WINDOW != nullptr)
 		{
@@ -238,6 +247,18 @@ namespace DisplayManager
 				b = Math::lerp(b_, b, a);
 			}
 
+			// Greyscale rendering
+			if (grey)
+			{
+				// Get max color component value
+				uint8_t c = std::max(r, std::max(g, b));
+
+				// Set all components to same value
+				r = c;
+				g = c;
+				b = c;
+			}
+
 			// Encode new ARGB component values back hex
 			auto argb = ((a << 255) | (r << 16) | (g << 8) | b);
 
@@ -249,7 +270,17 @@ namespace DisplayManager
 		}
 	}
 
-	void set_rect(size_t x, size_t y, size_t w, size_t h, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+	void set_rect(
+		size_t x,
+		size_t y,
+		size_t w,
+		size_t h,
+		uint8_t r,
+		uint8_t g,
+		uint8_t b,
+		uint8_t a,
+		bool grey
+	)
 	{
 		if (ACTIVE_WINDOW != nullptr)
 		{
@@ -262,13 +293,76 @@ namespace DisplayManager
 			{
 				for (size_t j = x; j < w; j++)
 				{
-					set_pixel(j, i, r, g, b, a);
+					set_pixel(j, i, r, g, b, a, grey);
 				}
 			}
 		}
 		else
 		{
 			mlibc_err("DisplayManager::set_rect(). Error, ACTIVE_WINDOW is pointing to NULL!");
+		}
+	}
+
+	void set_text(
+		size_t x,
+		size_t y,
+		size_t w,
+		size_t h,
+		std::string text,
+		uint8_t r,
+		uint8_t g,
+		uint8_t b,
+		TextureManager::Font * font
+	)
+	{
+		if (ACTIVE_WINDOW != nullptr)
+		{
+			// Render each character
+			int c_idx = 0;
+			for (char & c : text)
+			{
+				// Get char texture index
+				TextureManager::CharIdx char_idx = font->char_map[c];
+
+				// Skip rendering if it's a space
+				if (isspace(char_idx.key))
+				{
+					c_idx++;
+					continue;
+				}
+
+				// Calculate font size <-> char size ratio
+				float char_rat_w = static_cast<float>(font->char_width) / static_cast<float>(w);
+				float char_rat_h = static_cast<float>(font->char_height) / static_cast<float>(h);
+
+				for (size_t i = 0; i < w; i++)
+				{
+					for (size_t j = 0; j < h; j++)
+					{
+						// Calculate texcoords and sample the pixel + scale according to size diff
+						int char_tex_x = char_idx.x * font->char_width + (j * char_rat_w);
+						int char_tex_y = char_idx.y * font->char_height + (i * char_rat_h);
+						auto char_argb = TextureManager::sample_texture(font->texture->file_path, char_tex_x, char_tex_y);
+
+						// Decode char ARGB hex value into component(s)
+						auto char_a = (char_argb & 0xFF000000) >> 24;
+
+						// Calculate on-screen fbo metrics
+						int char_x = x + j + (w * c_idx);
+						int char_y = y + i;
+
+						// Set pixel
+						set_pixel(char_x, char_y, r, g, b, char_a, false);
+					}
+				}
+
+				// increase char idx
+				c_idx++;
+			}
+		}
+		else
+		{
+			mlibc_err("DisplayManager::set_text(). Error, ACTIVE_WINDOW is pointing to NULL!");
 		}
 	}
 

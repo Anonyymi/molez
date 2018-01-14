@@ -1,13 +1,20 @@
 #include "texture_manager.h"
+#include <iostream>
+#include <fstream>
 #define STB_IMAGE_IMPLEMENTATION
 #include "3rdparty/stb_image.h"
 #include "3rdparty/mlibc_log.h"
+#include "3rdparty/json.hpp"
+
+using json = nlohmann::json;
 
 namespace TextureManager
 {
 
-	extern const std::string DATA_DIR = "./data/gfx/";
+	const std::string DATA_DIR_TEX = "./data/gfx/";
+	const std::string DATA_DIR_FNT = "./data/fnt/";
 	std::map<std::string, Texture *> LOADED_TEXTURES = std::map<std::string, Texture *>();
+	std::map<std::string, Font *> LOADED_FONTS = std::map<std::string, Font *>();
 
 	// Init
 	void init()
@@ -23,6 +30,9 @@ namespace TextureManager
 		load_texture("MOSS.PNG");
 		load_texture("WATER.PNG");
 		load_texture("LAVA.PNG");
+
+		// Pre-load fonts
+		load_font("MOLEZ.JSON");
 
 		mlibc_inf("TextureManager::init().");
 	}
@@ -41,11 +51,12 @@ namespace TextureManager
 	// Textures (png, jpg, tga, tiff, gif, etc..)
 	Texture * const load_texture(const std::string & file_path)
 	{
-		std::string full_file_path = DATA_DIR + file_path;
+		std::string full_file_path = DATA_DIR_TEX + file_path;
 
 		if (LOADED_TEXTURES.count(file_path) == 0)
 		{
 			Texture * texture = new Texture;
+			texture->file_path = file_path;
 
 			// Attempt to load the image
 			unsigned char * data = NULL;
@@ -104,6 +115,67 @@ namespace TextureManager
 		}
 
 		return 0;
+	}
+
+	// Fonts
+	Font * const load_font(const std::string & file_path)
+	{
+		std::string full_file_path = DATA_DIR_FNT + file_path;
+
+		if (LOADED_FONTS.count(file_path) == 0)
+		{
+			// Load font JSON file
+			std::ifstream font_file(full_file_path, std::ifstream::binary);
+
+			if (font_file.is_open() == false)
+			{
+				mlibc_err("TextureManager::load_font(%s). Error loading file into memory!", file_path.c_str());
+				return nullptr;
+			}
+
+			json font_json;
+			font_file >> font_json;
+			font_file.close();
+
+			// Attempt to load the font texture
+			Font * font = new Font;
+			font->file_path = file_path;
+			std::string file_path_bitmap = font_json["file_path"].get<std::string>();
+			font->texture = load_texture(file_path_bitmap);
+
+			if (font->texture == nullptr)
+			{
+				delete font;
+				mlibc_err("TextureManager::load_font(%s). Error loading texture file into memory!", file_path.c_str());
+				return nullptr;
+			}
+
+			// Read the font properties into memory
+			font->char_width = font_json["char_width"].get<int>();
+			font->char_height = font_json["char_height"].get<int>();
+
+			json char_json = font_json["char_map"];
+			for (json::iterator it = char_json.begin(); it != char_json.end(); ++it)
+			{
+				CharIdx char_idx;
+
+				// Get char map key & 2D vector values
+				char key = it.key()[0];
+				char_idx.key = key;
+				char_idx.x = it.value()[0].get<int>();
+				char_idx.y = it.value()[1].get<int>();
+
+				// Read the key / value pair to memory for our font
+				font->char_map[key] = char_idx;
+			}
+
+			// Store the loaded font into our map
+			LOADED_FONTS[file_path] = font;
+
+			mlibc_inf("TextureManager::load_font(%s). Success, converted loaded file into internal format.", file_path.c_str());
+		}
+
+		return LOADED_FONTS[file_path];
 	}
 
 }

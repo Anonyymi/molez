@@ -19,7 +19,7 @@ namespace AudioManager
 		return_code = Mix_Init(MIX_INIT_MOD);
 		if (return_code == 0)
 		{
-			Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096);
+			Mix_OpenAudio(11025, MIX_DEFAULT_FORMAT, 2, 4096);
 			mlibc_inf("AudioManager::init(). SDL2_mixer Initialized successfully.");
 		}
 		else
@@ -27,6 +27,11 @@ namespace AudioManager
 			// TODO: Throw runtime exception
 			mlibc_err("AudioManager::init(). Mix_Init Error: %s", SDL_GetError());
 		}
+
+		// Pre-load music
+		load_music("MENU.MUS");
+		load_music("INGAME1.MUS");
+		load_music("INGAME2.MUS");
 
 		mlibc_inf("AudioManager::init().");
 	}

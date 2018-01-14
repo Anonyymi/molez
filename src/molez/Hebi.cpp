@@ -215,8 +215,36 @@ nextTick(Tick *tick){
 
     while(!syncThreads());
 
-    uint32_t *wurk = (uint32_t*)malloc(sizeof(uint32_t));
+    uint32_t *wurk = (uint32_t*)malloc(sizeof(uint32_t)*5);
     wurk[0] = FLUID;
+    wurk[1] = 1070; //to height
+    wurk[2] = 480; //to width
+    wurk[3] = 1; //from height
+    wurk[4] = 1; //from width;
+    workQueue.push(wurk);
+
+    wurk = (uint32_t*)malloc(sizeof(uint32_t)*5);
+    wurk[0] = FLUID;
+    wurk[1] = 1070; //to height
+    wurk[2] = 960; //to width
+    wurk[3] = 1; //from height
+    wurk[4] = 480; //from width;
+    workQueue.push(wurk);
+
+    wurk = (uint32_t*)malloc(sizeof(uint32_t)*5);
+    wurk[0] = FLUID;
+    wurk[1] = 1070; //to height
+    wurk[2] = 1440; //to width
+    wurk[3] = 1; //from height
+    wurk[4] = 960; //from width;
+    workQueue.push(wurk);
+
+    wurk = (uint32_t*)malloc(sizeof(uint32_t)*5);
+    wurk[0] = FLUID;
+    wurk[1] = 1070; //to height
+    wurk[2] = 1910; //to width
+    wurk[3] = 1; //from height
+    wurk[4] = 1440; //from width;
     workQueue.push(wurk);
     
     
@@ -287,8 +315,8 @@ void worker(ThreadPool &tPool, Hebi &engine, HQueue &que){
             //tPool.threadBusy(std::this_thread::get_id());
             switch(wurk[0]){
                 case FLUID:
-                    for(int i=1070;i>1;i--){
-                        for(int j = 1910; j>1;j--){
+                    for(int i=wurk[1];i>wurk[3];i--){
+                        for(int j = wurk[2]; j>wurk[4];j--){
                             engine.fluidSim(i,j);
                         }
                     }

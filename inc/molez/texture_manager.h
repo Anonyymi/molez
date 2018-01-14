@@ -27,7 +27,7 @@ namespace TextureManager
 
 	// Textures (png, jpg, tga, tiff, gif, etc..)
 	Texture * const load_texture(const std::string & file_path);
-	int32_t sample_texture(const std::string & file_path, int x, int y);
+	uint32_t sample_texture(const std::string & file_path, int x, int y);
 
 }
 

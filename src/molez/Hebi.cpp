@@ -57,7 +57,7 @@ init(EngineConfig cfg){
     InputManager::init();
 
 
-    LevelConfig level_cfg;
+    
     level_cfg.seed = 12345;
 	level_cfg.type = L_EARTH;
 	level_cfg.width = DisplayManager::ACTIVE_WINDOW->width;
@@ -67,6 +67,8 @@ init(EngineConfig cfg){
 	level_cfg.n_lava = 2;
 	setLevelConfig(level_cfg);
 	levelGenerate();
+
+    player.setPos(200,200);
 
 
 
@@ -111,34 +113,24 @@ gameSpeed(){
 
 
 
-bool Hebi::
-nextTick(Tick *tick){
-    
-    level.update();
-
-	level.render();
-
-    if (InputManager::MOUSE_L)
-    {
+void Hebi::
+processInput(Tick *tick){
+    if (InputManager::MOUSE_L){
         level.alter(M_WATER, 8, InputManager::MOUSE_X, InputManager::MOUSE_Y);
     }
-    else if (InputManager::MOUSE_M)
-    {
+    else if (InputManager::MOUSE_M){
         level.alter(M_LAVA, 8, InputManager::MOUSE_X, InputManager::MOUSE_Y);
     }
-    else if (InputManager::MOUSE_R)
-    {
+    else if (InputManager::MOUSE_R){
         level.alter(M_VOID, 12, InputManager::MOUSE_X, InputManager::MOUSE_Y);
     }
 
     // Level reset
-    if (InputManager::KBOARD[SDLK_r])
-    {
+    if (InputManager::KBOARD[SDLK_r]){
         level.regenerate(rand());
     }
 
-    if (InputManager::KBOARD[SDLK_d])
-    {
+    if (InputManager::KBOARD[SDLK_d]){
         debug = true;
     }
     //Change tickrate
@@ -156,26 +148,73 @@ nextTick(Tick *tick){
             engineCfg.fps++;
     }
     if (InputManager::KBOARD[SDLK_i]){
-        if(engineCfg.fps>1){
+        if(engineCfg.fps>1)
             engineCfg.fps--;
-        }
+    }
+
+
+    tick->move.y = 0;
+    tick->move.x = 0;
+
+    //Test movement
+    if (InputManager::KBOARD[SDLK_w]){
+        tick->move.y -= 3;
+    }
+    if (InputManager::KBOARD[SDLK_a]){
+        tick->move.x -= 3;
+    }
+    if (InputManager::KBOARD[SDLK_s]){
+        tick->move.y += 3;
+    }
+    if (InputManager::KBOARD[SDLK_d]){
+        tick->move.x += 3;
     }
 
     // Program exit
-    if (InputManager::KBOARD[SDLK_ESCAPE])
-    {
-        return false;
+
+}
+
+void Hebi::
+movePlayer(Tick *tick){
+    player.move(tick->move.x, tick->move.y);
+}
+
+
+bool Hebi::
+nextTick(Tick *tick){
+    
+
+
+    for(int i=1070;i>0; i--){
+               
+	    level.render(i);
+        //level.generateGravitymap(i);
+        level.update(i);
     }
+
+    
+    debug = false;
+
+    processInput(tick);
+
+    movePlayer(tick);
+
+
+    //
+    //level.alter(M_WATER, 5, player.getX(), player.getY());
 
     if(debug){
         //Add more debugging properties here if necessary
         printDebugInformation();
 
     }
-    debug = false;
 
     tick->count++;
-    return true;
+
+    if (InputManager::KBOARD[SDLK_ESCAPE])
+        return false;
+    else  
+        return true;
 }
 
 

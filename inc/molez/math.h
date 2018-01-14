@@ -128,6 +128,8 @@ namespace Math
 		std::uniform_int_distribution<> m_dist;			// RNG distribution
 	};
 
+
+
 }
 
 #endif // MATH_H

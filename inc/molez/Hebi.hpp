@@ -9,6 +9,7 @@ Made by xoxo 2018-
 #include "display_manager.h"
 #include "texture_manager.h"
 #include "3rdparty/mlibc_log.h"
+#include "player.h"
 #include "Tick.hpp"
 #include <vector>
 #include <thread>
@@ -60,6 +61,8 @@ private:
     EngineConfig engineCfg;
     Level level;
     bool debug = false;
+    Player player;
+    LevelConfig level_cfg;
 
 public:
     
@@ -72,6 +75,8 @@ public:
     void setLevelConfig(LevelConfig cfg);
     void levelGenerate();
     void printDebugInformation();
+    void processInput(Tick *tick);
+    void movePlayer(Tick *tick);
     bool nextTick(Tick *tick);
 
     void threadWork();

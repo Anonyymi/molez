@@ -94,7 +94,7 @@ namespace TextureManager
 		return LOADED_TEXTURES[file_path];
 	}
 
-	int32_t sample_texture(const std::string & file_path, int x, int y)
+	uint32_t sample_texture(const std::string & file_path, int x, int y)
 	{
 		if (LOADED_TEXTURES.count(file_path) > 0)
 		{

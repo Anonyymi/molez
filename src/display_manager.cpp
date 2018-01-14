@@ -1,6 +1,7 @@
 #include "display_manager.h"
 #include <SDL.h>
 #include "3rdparty/mlibc_log.h"
+#include "math.h"
 
 namespace DisplayManager
 {
@@ -111,7 +112,7 @@ namespace DisplayManager
 
 			LOADED_WINDOWS[title] = window;
 
-			mlibc_inf("DisplayManager::load_window(%s). Loaded a new window into memory.", title.c_str());
+			mlibc_dbg("DisplayManager::load_window(%s). Loaded a new window into memory.", title.c_str());
 		}
 
 		return LOADED_WINDOWS[title];
@@ -123,7 +124,7 @@ namespace DisplayManager
 		{
 			ACTIVE_WINDOW = LOADED_WINDOWS[title];
 
-			mlibc_inf("DisplayManager::activate_window(%s). Selected a new active window.", title.c_str());
+			mlibc_dbg("DisplayManager::activate_window(%s). Selected a new active window.", title.c_str());
 		}
 		else
 		{
@@ -149,7 +150,7 @@ namespace DisplayManager
 
 			LOADED_CAMERAS[identifier] = camera;
 
-			mlibc_inf("DisplayManager::load_camera(%s). Loaded a new camera into memory.", identifier.c_str());
+			mlibc_dbg("DisplayManager::load_camera(%s). Loaded a new camera into memory.", identifier.c_str());
 		}
 
 		return LOADED_CAMERAS[identifier];
@@ -160,8 +161,6 @@ namespace DisplayManager
 		if (LOADED_CAMERAS.count(identifier) > 0)
 		{
 			ACTIVE_CAMERA = LOADED_CAMERAS[identifier];
-
-			mlibc_inf("DisplayManager::activate_camera(%s). Selected a new active camera.", identifier.c_str());
 		}
 		else
 		{
@@ -204,7 +203,7 @@ namespace DisplayManager
 		}
 	}
 
-	void set_pixel(size_t x, size_t y, uint8_t r, uint8_t g, uint8_t b)
+	void set_pixel(size_t x, size_t y, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 	{
 		if (ACTIVE_WINDOW != nullptr)
 		{
@@ -224,12 +223,52 @@ namespace DisplayManager
 			if (x < 0 || x >= ACTIVE_WINDOW->width || y < 0 || y >= ACTIVE_WINDOW->height)
 				return;
 
-			auto argb = ((r << 16) | (g << 8) | b);
+			// Alpha, mix between old and new color
+			if (a < 255)
+			{
+				// Get old ARGB value + decode to RGB components
+				auto argb_ = ACTIVE_WINDOW->framebuffer[x + y * ACTIVE_WINDOW->width];
+				auto r_ = (argb_ & 0x00FF0000) >> 16;
+				auto g_ = (argb_ & 0x0000FF00) >> 8;
+				auto b_ = (argb_ & 0x000000FF);
+
+				// Linearly interpolate between old and new RGB components based on input alpha
+				r = Math::lerp(r_, r, a);
+				g = Math::lerp(g_, g, a);
+				b = Math::lerp(b_, b, a);
+			}
+
+			// Encode new ARGB component values back hex
+			auto argb = ((a << 255) | (r << 16) | (g << 8) | b);
+
 			ACTIVE_WINDOW->framebuffer[x + y * ACTIVE_WINDOW->width] = argb;
 		}
 		else
 		{
 			mlibc_err("DisplayManager::set_pixel(). Error, ACTIVE_WINDOW is pointing to NULL!");
+		}
+	}
+
+	void set_rect(size_t x, size_t y, size_t w, size_t h, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+	{
+		if (ACTIVE_WINDOW != nullptr)
+		{
+			// Translate width and height by x and y
+			w += x;
+			h += y;
+
+			// Render the rectangle
+			for (size_t i = y; i < h; i++)
+			{
+				for (size_t j = x; j < w; j++)
+				{
+					set_pixel(j, i, r, g, b, a);
+				}
+			}
+		}
+		else
+		{
+			mlibc_err("DisplayManager::set_rect(). Error, ACTIVE_WINDOW is pointing to NULL!");
 		}
 	}
 

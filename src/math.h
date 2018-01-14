@@ -9,6 +9,17 @@
 
 namespace Math
 {
+	// ------------------------------------------------------------------------
+	// -- GLOBAL MATH FUNCTIONS
+	// ------------------------------------------------------------------------
+	inline uint8_t lerp(uint8_t x0, uint8_t x1, uint8_t x)
+	{
+		float x0_ = static_cast<float>(x0);
+		float x1_ = static_cast<float>(x1);
+		float x_ = static_cast<float>(x / 255.0f);
+
+		return static_cast<uint8_t>((1.0f - x_) * x0_ + x_ * x1_);
+	}
 
 	// ------------------------------------------------------------------------
 	// -- GLOBAL RANDOM NUMBER GENERATOR

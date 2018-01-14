@@ -43,12 +43,13 @@ int main(int argc, char * argv[])
 	DisplayManager::clear(0x00000000);
 	DisplayManager::load_camera("main", 0, 0, 5);
 	DisplayManager::activate_camera("main");
+	DisplayManager::load_camera("menu", 0, 0, 0);
 
 	// Init AudioManager
 	AudioManager::init();
 	AudioManager::set_music_volume(64);
 	AudioManager::load_music("MENU.MUS");
-	AudioManager::play_music("MENU.MUS");
+	//AudioManager::play_music("MENU.MUS");
 
 	// Init TextureManager
 	TextureManager::init();
@@ -126,6 +127,13 @@ int main(int argc, char * argv[])
 
 		// Render level
 		level.render();
+
+		// Render test elements (maybe a menu later)
+		DisplayManager::ACTIVE_CAMERA = nullptr;
+		DisplayManager::set_rect(0, 0, 128, 128, 0, 0, 0, 128);
+		DisplayManager::set_rect(0, 0, 64, 64, 0, 0, 0, 32);
+		DisplayManager::set_rect(64, 64, 128, 32, 0, 0, 0, 190);
+		DisplayManager::activate_camera("main");
 
 		// Update screen fbo
 		DisplayManager::render();

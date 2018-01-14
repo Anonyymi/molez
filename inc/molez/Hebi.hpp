@@ -1,7 +1,8 @@
 /*          HEBI
 A game engine for lierolike games
-Made by xoxo 2018-
+Made by Lumipallo 2018-
 */
+
 #ifndef HEBI_HPP
 #define HEBI_HPP
 #include "level.h"
@@ -16,6 +17,7 @@ Made by xoxo 2018-
 #include <unistd.h>
 #include "queue.hpp"
 #include <atomic>
+#include <map>
 
 #ifdef __linux__
 #include <SDL2/SDL.h>
@@ -29,28 +31,33 @@ Made by xoxo 2018-
 
 class Hebi;
 
+
 class ThreadPool{
 private:
     std::vector<std::thread> threads;
-    
+    std::vector<std::thread::id> threadIds;
+
     std::atomic_uint threadCount;
     std::atomic_uint idleCount;
     bool running;
     std::atomic_bool busy;
+
+    std::map<std::thread::id , bool> idleThreads;
 public:
 
     ThreadPool();
     ~ThreadPool();
 
     //Start n amount of threads
+    void storeThreadId(std::thread::id uid);
     bool spawn(int32_t n, ThreadPool &tPool, Hebi &engine, HQueue &que);
     bool isRunning();
-    uint32_t idleThreads();
+    //uint32_t idleThreads();
     uint32_t busyThreads();
     uint32_t totalThreads();
     bool isBusy();
-    void threadIdle(std::thread::id);
-    void threadBusy(std::thread::id);
+    void threadIdle(std::thread::id uid);
+    void threadBusy(std::thread::id uid);
     void quit();
 
 
@@ -92,6 +99,8 @@ public:
     void movePlayer(Tick *tick);
     bool nextTick(Tick *tick);
     void fluidSim(uint32_t y, uint32_t x);
+    void render();
+    bool syncThreads();
 
     void threadWork();
 

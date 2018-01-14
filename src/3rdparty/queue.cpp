@@ -33,10 +33,19 @@ push(uint32_t *data){
 }
 uint32_t *HQueue::
 pull(){
+	
+
 	if(elemNum == 0){
 		return NULL;
 	}
+
 	mutex.lock();
+
+	if(elemNum == 0){
+		mutex.unlock();
+		return NULL;
+	}
+
 	QueueElement *next = first->next;
 	uint32_t *data = first->data;
 	free(first);
@@ -48,7 +57,7 @@ pull(){
 
 }
 
-//doesn't free data[i]
+
 void HQueue::
 destroy(){
 	struct QueueElement *tmp;

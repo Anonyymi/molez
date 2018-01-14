@@ -53,7 +53,7 @@ bool gameLoop(){
 		float timems = ((float)(endClock - startClock)/(float)CLOCKS_PER_SEC)*1000.0;
 		float tickTimems = ((float)(endClock - tickStartClock)/(float)CLOCKS_PER_SEC)*1000.0;
 		if(timems>=1000/engine.maxfps()){
-			DisplayManager::render();
+			engine.render();
 			startClock = clock();
 			
 		}
@@ -75,7 +75,7 @@ int main(int argc, char * argv[])
 	int return_code = 0;
 
 
-	engine_cfg.threadCount = 1;
+	engine_cfg.threadCount = 3;
 	engine_cfg.tickrate = 60;
 	engine_cfg.fps = 60;
 	engine_cfg.cappedFps = true;

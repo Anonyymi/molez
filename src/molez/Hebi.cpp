@@ -128,6 +128,7 @@ processInput(Tick *tick){
 
     // Level reset
     if (InputManager::KBOARD[SDLK_r]){
+        while(!syncThreads());
         level.regenerate(rand());
     }
 
@@ -185,26 +186,40 @@ fluidSim(uint32_t y, uint32_t x){
     level.update(y,x);
 }
 
+void Hebi::
+render(){
+    while(!syncThreads());
+
+
+    for(int i=1070;i>0; i--){            
+	    level.render(i);
+    }
+
+
+    DisplayManager::render();
+}
+
+bool Hebi::
+syncThreads(){
+    if(tPool.isBusy()){
+        std::this_thread::sleep_for(std::chrono::microseconds(50));
+        return false;
+    }
+    return true;
+}
+
 
 
 bool Hebi::
 nextTick(Tick *tick){
 
+    while(!syncThreads());
 
     uint32_t *wurk = (uint32_t*)malloc(sizeof(uint32_t));
     wurk[0] = FLUID;
     workQueue.push(wurk);
-    usleep(300);
-
-    while(tPool.isBusy()){
-        usleep(50);
-    }
-
-    for(int i=1070;i>0; i--){            
-	    level.render(i);
-
-    }
-
+    
+    
     processInput(tick);
 
     movePlayer(tick);
@@ -228,10 +243,7 @@ nextTick(Tick *tick){
         return true;
 }
 
-uint32_t ThreadPool::
-idleThreads(){
-    return idleCount;
-}
+
 
 
 uint32_t ThreadPool::
@@ -246,24 +258,33 @@ totalThreads(){
 
 bool ThreadPool::
 isBusy(){
-    return busy;
+    for(int i=0; i<threads.size(); i++){
+        if(idleThreads[threadIds.at(i)] == false)
+            return true;
+    }
+    return false;
+
 }
 
 void ThreadPool::
-threadIdle(std::thread::id){
-    busy = false;
+threadIdle(std::thread::id uid){
+    idleThreads[uid] = true;
+    idleCount++;
 }
 void ThreadPool::
-threadBusy(std::thread::id){
-    busy = true;
+threadBusy(std::thread::id uid){
+    idleThreads[uid] = false;
+    idleCount--;
 }
 
 void worker(ThreadPool &tPool, Hebi &engine, HQueue &que){
+    tPool.storeThreadId(std::this_thread::get_id());
     tPool.threadIdle(std::this_thread::get_id());
     while(tPool.isRunning()){
+        std::this_thread::sleep_for(std::chrono::microseconds(10));
         uint32_t *wurk = que.pull();
         if(wurk != NULL){
-            tPool.threadBusy(std::this_thread::get_id());
+            //tPool.threadBusy(std::this_thread::get_id());
             switch(wurk[0]){
                 case FLUID:
                     for(int i=1070;i>1;i--){
@@ -293,6 +314,10 @@ isRunning(){
     return running;
 }
 
+void ThreadPool::
+storeThreadId(std::thread::id uid){
+    threadIds.push_back(uid);
+}
 
 bool ThreadPool::
 spawn(int32_t n, ThreadPool &tPool, Hebi &engine, HQueue &que){

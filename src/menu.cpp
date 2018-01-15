@@ -4,6 +4,7 @@
 #include "display_manager.h"
 #include "input_manager.h"
 #include "texture_manager.h"
+#include "audio_manager.h"
 
 Menu::Menu(
 	const std::string & title
@@ -83,6 +84,7 @@ void Menu::update()
 	if (InputManager::KBOARD[SDLK_UP])
 	{
 		m_selected_idx = (m_selected_idx > 0) ? m_selected_idx - 1 : m_selected_idx;
+		AudioManager::play_audio("MOVEUP.SFX");
 		InputManager::KBOARD[SDLK_UP] = false;
 
 		mlibc_dbg("idx: %zu", m_selected_idx);
@@ -90,8 +92,16 @@ void Menu::update()
 	else if (InputManager::KBOARD[SDLK_DOWN])
 	{
 		m_selected_idx = (m_selected_idx < m_items.size() - 1) ? m_selected_idx + 1 : m_selected_idx;
+		AudioManager::play_audio("MOVEDOWN.SFX");
 		InputManager::KBOARD[SDLK_DOWN] = false;
 
 		mlibc_dbg("idx: %zu", m_selected_idx);
+	}
+
+	// Select menu item
+	if (InputManager::KBOARD[SDLK_RETURN])
+	{
+		AudioManager::play_audio("SELECT.SFX");
+		InputManager::KBOARD[SDLK_RETURN] = false;
 	}
 }

@@ -1,5 +1,5 @@
 #include "menu.h"
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include "3rdparty/mlibc_log.h"
 #include "display_manager.h"
 #include "input_manager.h"

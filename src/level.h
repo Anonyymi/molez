@@ -4,7 +4,7 @@
 #include <vector>
 #include <cstdint>
 #include "math.h"
-#include "Material.hpp"
+#include "material.h"
 #include <stdlib.h>
 
 using namespace Math;
@@ -14,15 +14,15 @@ enum Level_t : uint8_t
 	L_EARTH = 0
 };
 
-struct Pixel{
+struct Pixel {
 	/*
 	uint8_t n;						// noise value
 	int32_t x, y;					// xy-coords in bitmap
 	Material_t m;					// material id
 	*/
-	union{
+	union {
 		uint32_t rgba;
-		struct{
+		struct {
 			uint8_t r;						// color: red
 			uint8_t g;						// color: green
 			uint8_t b;						// color: blue
@@ -42,11 +42,11 @@ struct LevelConfig
 	uint8_t n_lava;					// 0..255
 };
 
-typedef struct Rectangle{
-	uint32_t x,y,x1,y1;
-} Rectangle;
+typedef struct Rect {
+	uint32_t x, y, x1, y1;
+} Rect;
 
-typedef enum Direction : uint8_t{
+typedef enum Direction : uint8_t {
 	DOWN = 0,
 	DOWNLEFT = 1,
 	DOWNRIGHT = 2,
@@ -55,9 +55,9 @@ typedef enum Direction : uint8_t{
 	STAY
 } Direction;
 
-typedef struct Area{
+typedef struct Area {
 	//
-	Rectangle dimensions;
+	Rect dimensions;
 	Material **materialmap;
 	Pixel **bitmap;
 	Direction **gravitymap;
@@ -78,17 +78,17 @@ public:
 
 	void setConfig(LevelConfig cfg);
 	void generate();
-	void updateGravity(uint32_t y,uint32_t x, Area &area);
-	void updateGravity(uint32_t y,uint32_t x);
+	void updateGravity(uint32_t y, uint32_t x, Area &area);
+	void updateGravity(uint32_t y, uint32_t x);
 	void generateGravitymap(uint32_t height);
 	void generate_clumps(Material_t m, Material_t t, size_t amount, uint8_t chance, uint8_t n_min = 0, uint8_t n_max = 0);
 	void regenerate(uint32_t seed);
 	uint32_t sample_pixel(uint32_t s_y, uint32_t s_x, Area &area);
 	void swapLocation(int srcY, int srcX, int destY, int destX, Area &area);
 	void alter(Material_t m, uint8_t r, int32_t x, int32_t y);
-	void swapPixel(uint32_t y0,uint32_t x0,uint32_t y1,uint32_t x1);
+	void swapPixel(uint32_t y0, uint32_t x0, uint32_t y1, uint32_t x1);
 	void render(uint32_t height);
-	void update(uint32_t y,uint32_t x);
+	void update(uint32_t y, uint32_t x);
 	Pixel **getBitmap();
 
 

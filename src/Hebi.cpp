@@ -1,20 +1,20 @@
-#include "Hebi.hpp"
+#include "hebi.h"
 
 
 
 
 
 Hebi::
-Hebi(){
+Hebi() {
 
 
 }
 
 Hebi::
-~Hebi(){
-    tPool.quit();
-    TextureManager::quit();
-	//AudioManager::quit();
+~Hebi() {
+	tPool.quit();
+	TextureManager::quit();
+	AudioManager::quit();
 	DisplayManager::quit();
 	InputManager::quit();
 	SDL_Quit();
@@ -24,10 +24,10 @@ Hebi::
 
 
 bool Hebi::
-init(EngineConfig cfg){
-    engineCfg = cfg;
-    
-    int return_code = 0;
+init(EngineConfig cfg) {
+	engineCfg = cfg;
+
+	int return_code = 0;
 
 	// Init mlibc_log
 	return_code = mlibc_log_init(MLIBC_LOG_LEVEL_DBG);
@@ -46,19 +46,19 @@ init(EngineConfig cfg){
 		return return_code;
 	}
 	mlibc_inf("::main(). SDL2 Initialized successfully.");
-    
+
 
 	DisplayManager::init();
 	DisplayManager::load_window("molez", 1920, 1080, 2);
 	DisplayManager::activate_window("molez");
 	DisplayManager::clear(0x00000000);
 
-    TextureManager::init();
-    InputManager::init();
+	TextureManager::init();
+	InputManager::init();
 
 
-    
-    level_cfg.seed = 12345;
+
+	level_cfg.seed = 12345;
 	level_cfg.type = L_EARTH;
 	level_cfg.width = DisplayManager::ACTIVE_WINDOW->width;
 	level_cfg.height = DisplayManager::ACTIVE_WINDOW->height;
@@ -68,143 +68,147 @@ init(EngineConfig cfg){
 	setLevelConfig(level_cfg);
 	levelGenerate();
 
-    player.setPos(200,200);
+	player.setPos(200, 200);
 
 
 
 
 
-    tPool.spawn(engineCfg.threadCount, tPool, *this);
+	tPool.spawn(engineCfg.threadCount, tPool, *this);
 }
 
 void Hebi::
-setLevelConfig(LevelConfig cfg){
-    level.setConfig(cfg);
+setLevelConfig(LevelConfig cfg) {
+	level.setConfig(cfg);
 }
 
 void Hebi::
-levelGenerate(){
-    level.generate();
+levelGenerate() {
+	level.generate();
 }
 
 void Hebi::
-printDebugInformation(){
-    
+printDebugInformation() {
+
 }
 
 void Hebi::
-threadWork(){
+threadWork() {
 
 }
 
 uint32_t Hebi::
-tickrate(){
-    return engineCfg.tickrate;
+tickrate() {
+	return engineCfg.tickrate;
 }
 
 uint32_t Hebi::
-maxfps(){
-    return engineCfg.fps;
+maxfps() {
+	return engineCfg.fps;
 }
 
 float Hebi::
-gameSpeed(){
-    return engineCfg.gameSpeed;
+gameSpeed() {
+	return engineCfg.gameSpeed;
 }
 
 
 
 void Hebi::
-processInput(Tick *tick){
-    if (InputManager::MOUSE_L){
-        level.alter(M_WATER, 40, InputManager::MOUSE_X, InputManager::MOUSE_Y);
-    }
-    else if (InputManager::MOUSE_M){
-        level.alter(M_LAVA, 40, InputManager::MOUSE_X, InputManager::MOUSE_Y);
-    }
-    else if (InputManager::MOUSE_R){
-        level.alter(M_VOID, 40, InputManager::MOUSE_X, InputManager::MOUSE_Y);
-    }
+processInput(Tick *tick) {
+	if (InputManager::MOUSE_L) {
+		level.alter(M_WATER, 40, InputManager::MOUSE_X, InputManager::MOUSE_Y);
+	}
+	else if (InputManager::MOUSE_M) {
+		level.alter(M_LAVA, 40, InputManager::MOUSE_X, InputManager::MOUSE_Y);
+	}
+	else if (InputManager::MOUSE_R) {
+		level.alter(M_VOID, 40, InputManager::MOUSE_X, InputManager::MOUSE_Y);
+	}
 
-    // Level reset
-    if (InputManager::KBOARD[SDLK_r]){
-        tPool.waitThreads();
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        level.regenerate(rand());
-        tPool.resumeThreads();
-    }
+	// Level reset
+	if (InputManager::KBOARD[SDLK_r]) {
+		tPool.waitThreads();
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+		level.regenerate(rand());
+		tPool.resumeThreads();
+	}
 
-    if (InputManager::KBOARD[SDLK_d]){
-        debug = true;
-    }
-    //Change tickrate
-    if (InputManager::KBOARD[SDLK_j]){
-        engineCfg.tickrate = 128;
-    }
+	if (InputManager::KBOARD[SDLK_d]) {
+		debug = true;
+	}
+	//Change tickrate
+	if (InputManager::KBOARD[SDLK_j]) {
+		engineCfg.tickrate = 128;
+	}
 
-    if (InputManager::KBOARD[SDLK_k]){
-            engineCfg.tickrate = 1;
-    }
+	if (InputManager::KBOARD[SDLK_k]) {
+		engineCfg.tickrate = 1;
+	}
 
-    //Change fps
-    if (InputManager::KBOARD[SDLK_u]){
-            engineCfg.fps++;
-    }
-    if (InputManager::KBOARD[SDLK_i]){
-        if(engineCfg.fps>1)
-            engineCfg.fps--;
-    }
+	//Change fps
+	if (InputManager::KBOARD[SDLK_u]) {
+		engineCfg.fps++;
+	}
+	if (InputManager::KBOARD[SDLK_i]) {
+		if (engineCfg.fps > 1)
+			engineCfg.fps--;
+	}
 
 
-    tick->move.y = 0;
-    tick->move.x = 0;
+	tick->move.y = 0;
+	tick->move.x = 0;
 
-    //Test movement
-    if (InputManager::KBOARD[SDLK_w]){
-        tick->move.y -= 3;
-    }
-    if (InputManager::KBOARD[SDLK_a]){
-        tick->move.x -= 3;
-    }
-    if (InputManager::KBOARD[SDLK_s]){
-        tick->move.y += 3;
-    }
-    if (InputManager::KBOARD[SDLK_d]){
-        tick->move.x += 3;
-    }
+	//Test movement
+	if (InputManager::KBOARD[SDLK_w]) {
+		tick->move.y -= 3;
+	}
+	if (InputManager::KBOARD[SDLK_a]) {
+		tick->move.x -= 3;
+	}
+	if (InputManager::KBOARD[SDLK_s]) {
+		tick->move.y += 3;
+	}
+	if (InputManager::KBOARD[SDLK_d]) {
+		tick->move.x += 3;
+	}
 
-    // Program exit
+	// Program exit
 
 }
 
 void Hebi::
-movePlayer(Tick *tick){
-    player.move(tick->move.x, tick->move.y);
+movePlayer(Tick *tick) {
+	player.move(tick->move.x, tick->move.y);
 }
 
 void Hebi::
-fluidSim(uint32_t y, uint32_t x){
-    level.update(y,x);
+fluidSim(uint32_t y, uint32_t x) {
+	level.update(y, x);
 }
 void Hebi::
-physSim(uint32_t y, uint32_t x){
-    level.updateGravity(y,x);
+physSim(uint32_t y, uint32_t x) {
+	level.updateGravity(y, x);
 }
 
 void Hebi::
-render(){
-    //tPool.waitThreads();
+render() {
+	//tPool.waitThreads();
 
-    Pixel **bitmap = level.getBitmap();
-    for(uint32_t j = 0;j<level_cfg.height;j++){
-        for (uint32_t i = 0; i < level_cfg.width; i++){
-            Pixel pixel = bitmap[j][i];
-            //DisplayManager::set_pixel(i, j, pixel.b, pixel.g, pixel.r);
-            DisplayManager::set_pixel(i, j, pixel.rgba);
-        }
-    }
-    DisplayManager::render();
-    //tPool.resumeThreads();
+	Pixel **bitmap = level.getBitmap();
+	for (uint32_t j = 0; j < level_cfg.height; j++) {
+		for (uint32_t i = 0; i < level_cfg.width; i++) {
+			Pixel pixel = bitmap[j][i];
+			// Break pixel rgba into components
+			uint8_t a = (pixel.rgba & 0xFF000000) >> 24;
+			uint8_t r = (pixel.rgba & 0x00FF0000) >> 16;
+			uint8_t g = (pixel.rgba & 0x0000FF00) >> 8;
+			uint8_t b = (pixel.rgba & 0x000000FF);
+			DisplayManager::set_pixel(i, j, r, g, b, a, false);
+		}
+	}
+	DisplayManager::render();
+	//tPool.resumeThreads();
 
 }
 
@@ -212,62 +216,62 @@ render(){
 
 
 bool Hebi::
-nextTick(Tick *tick){
-
-    
+nextTick(Tick *tick) {
 
 
-    //tPool.syncThreads();
-
-    processInput(tick);
-    /*
-    for(int i=0;i<1070;i++)
-        level.generateGravitymap(i);
-    */
-    /*
-    uint32_t *wurk = (uint32_t*)malloc(sizeof(uint32_t)*5);
-    wurk[0] = PHYS;
-    wurk[1] = 1070; //to height
-    wurk[2] = 1911; //to width
-    wurk[3] = 1; //from height
-    wurk[4] = 1; //from width;
-    workQueue.push(wurk);
-
-    */
 
 
-    uint32_t *wurk = (uint32_t*)malloc(sizeof(uint32_t)*5);
-    wurk[0] = FLUID;
-    wurk[1] = 1070; //to height
-    wurk[2] = 1911; //to width
-    wurk[3] = 1; //from height
-    wurk[4] = 1; //from width;
-    tPool.enqueue(wurk);
-    
-    
-    
+	//tPool.syncThreads();
 
-    movePlayer(tick);
+	processInput(tick);
+	/*
+	for(int i=0;i<1070;i++)
+		level.generateGravitymap(i);
+	*/
+	/*
+	uint32_t *wurk = (uint32_t*)malloc(sizeof(uint32_t)*5);
+	wurk[0] = PHYS;
+	wurk[1] = 1070; //to height
+	wurk[2] = 1911; //to width
+	wurk[3] = 1; //from height
+	wurk[4] = 1; //from width;
+	workQueue.push(wurk);
 
-    
-    //
-    //level.alter(M_WATER, 5, player.getX(), player.getY());
+	*/
 
-    if(debug){
-        //Add more debugging properties here if necessary
-        printDebugInformation();
 
-    }
+	uint32_t *wurk = (uint32_t*)malloc(sizeof(uint32_t) * 5);
+	wurk[0] = FLUID;
+	wurk[1] = 1070; //to height
+	wurk[2] = 1911; //to width
+	wurk[3] = 1; //from height
+	wurk[4] = 1; //from width;
+	tPool.enqueue(wurk);
 
-   
-    tick->count++;
 
-    //tPool.syncThreads();
 
-    if (InputManager::KBOARD[SDLK_ESCAPE])
-        return false;
-    else  
-        return true;
+
+	movePlayer(tick);
+
+
+	//
+	//level.alter(M_WATER, 5, player.getX(), player.getY());
+
+	if (debug) {
+		//Add more debugging properties here if necessary
+		printDebugInformation();
+
+	}
+
+
+	tick->count++;
+
+	//tPool.syncThreads();
+
+	if (InputManager::KBOARD[SDLK_ESCAPE])
+		return false;
+	else
+		return true;
 }
 
 
@@ -278,11 +282,11 @@ nextTick(Tick *tick){
 
 
 ThreadPool::
-ThreadPool(){
-    running = true;
+ThreadPool() {
+	running = true;
 }
 ThreadPool::
-~ThreadPool(){
+~ThreadPool() {
 
 }
 
@@ -290,89 +294,89 @@ ThreadPool::
 
 
 bool ThreadPool::
-isBusy(){
-    for(int i=0; i<threads.size(); i++){
-        if(idleThreads[threadIds.at(i)] == false)
-            return true;
-    }
-    return false;
+isBusy() {
+	for (int i = 0; i < threads.size(); i++) {
+		if (idleThreads[threadIds.at(i)] == false)
+			return true;
+	}
+	return false;
 
 }
 
 void ThreadPool::
-threadIdle(std::thread::id uid){
-    idleThreads[uid] = true;
-    idleCount++;
+threadIdle(std::thread::id uid) {
+	idleThreads[uid] = true;
+	idleCount++;
 }
 void ThreadPool::
-threadBusy(std::thread::id uid){
-    idleThreads[uid] = false;
-    idleCount--;
-}
-
-
-void ThreadPool::
-syncThreads(){
-    waitThreads();
-    resumeThreads();
+threadBusy(std::thread::id uid) {
+	idleThreads[uid] = false;
+	idleCount--;
 }
 
 
 void ThreadPool::
-storeThreadId(std::thread::id uid){
-    threadIds.push_back(uid);
+syncThreads() {
+	waitThreads();
+	resumeThreads();
+}
+
+
+void ThreadPool::
+storeThreadId(std::thread::id uid) {
+	threadIds.push_back(uid);
 }
 
 bool ThreadPool::
-spawn(int32_t n, ThreadPool &tPool, Hebi &engine){
-    for(int i=0;i<n;i++){
-        threads.push_back(std::thread(worker, std::ref(tPool), std::ref(engine),std::ref(queue)));
-        threadCount++;
-    }
-    return true;
+spawn(int32_t n, ThreadPool &tPool, Hebi &engine) {
+	for (int i = 0; i < n; i++) {
+		threads.push_back(std::thread(worker, std::ref(tPool), std::ref(engine), std::ref(queue)));
+		threadCount++;
+	}
+	return true;
 }
 
 void ThreadPool::
-enqueue(uint32_t *data){
-    queue.push(data);
+enqueue(uint32_t *data) {
+	queue.push(data);
 }
 
 bool ThreadPool::
-isRunning(){
-    return running;
+isRunning() {
+	return running;
 }
 
 void ThreadPool::
-waitThreads(){
-    uint32_t *d;
-    for(int i=0;i<threads.size();i++){
-        d = (uint32_t*)malloc(sizeof(uint32_t));
-        d[0] = WAIT;
-        enqueue(d);
-    }
-    while(queue.size() != 0)
-        std::this_thread::sleep_for(std::chrono::microseconds(150));
+waitThreads() {
+	uint32_t *d;
+	for (int i = 0; i < threads.size(); i++) {
+		d = (uint32_t*)malloc(sizeof(uint32_t));
+		d[0] = WAIT;
+		enqueue(d);
+	}
+	while (queue.size() != 0)
+		std::this_thread::sleep_for(std::chrono::microseconds(150));
 }
 
 
 void ThreadPool::
-resumeThreads(){
-    uint32_t *d;
-    for(int i=0;i<threads.size();i++){
-        d = (uint32_t*)malloc(sizeof(uint32_t));
-        d[0] = RESUME;
-        enqueue(d);
-    }
+resumeThreads() {
+	uint32_t *d;
+	for (int i = 0; i < threads.size(); i++) {
+		d = (uint32_t*)malloc(sizeof(uint32_t));
+		d[0] = RESUME;
+		enqueue(d);
+	}
 }
 
 uint32_t ThreadPool::
-busyThreads(){
-    return threadCount - idleCount;
+busyThreads() {
+	return threadCount - idleCount;
 }
 
 uint32_t ThreadPool::
-totalThreads(){
-    return threadCount;
+totalThreads() {
+	return threadCount;
 }
 
 
@@ -380,66 +384,67 @@ totalThreads(){
 
 
 void ThreadPool::
-quit(){
-    running = false;
-    for(int i=0;i<threads.size();i++){
-        threads.at(i).join();
-    }
+quit() {
+	running = false;
+	for (int i = 0; i < threads.size(); i++) {
+		threads.at(i).join();
+	}
 }
 
 
 void ThreadPool::
-threadWait(){
-    uint32_t *wurk;
-    while(true){
-        std::this_thread::sleep_for(std::chrono::microseconds(50));
-        wurk = queue.pull();
-        if(wurk == NULL)
-            continue;
-        if(wurk[0] == RESUME){
-            return;
-        } else {
-            enqueue(wurk);
-        }
-    }
+threadWait() {
+	uint32_t *wurk;
+	while (true) {
+		std::this_thread::sleep_for(std::chrono::microseconds(50));
+		wurk = queue.pull();
+		if (wurk == NULL)
+			continue;
+		if (wurk[0] == RESUME) {
+			return;
+		}
+		else {
+			enqueue(wurk);
+		}
+	}
 
 }
 
-void worker(ThreadPool &tPool, Hebi &engine, HQueue &que){
-    tPool.storeThreadId(std::this_thread::get_id());
-    tPool.threadIdle(std::this_thread::get_id());
-    while(tPool.isRunning()){
-        std::this_thread::sleep_for(std::chrono::microseconds(10));
-        uint32_t *wurk = que.pull();
-        if(wurk != NULL){
-            //tPool.threadBusy(std::this_thread::get_id());
-            switch(wurk[0]){
-                case FLUID:
-                    for(int i=wurk[1];i>wurk[3];i--){
-                        for(int j = wurk[2]; j>wurk[4];j--){
-                            engine.fluidSim(i,j);
-                        }
-                    }
-                    free(wurk);
-                    break;
-                case PHYS:
-                    for(int i=wurk[1];i>wurk[3];i--){
-                        for(int j = wurk[2]; j>wurk[4];j--){
-                            engine.physSim(i,j);
-                        }
-                    }
-                    free(wurk);
-                    break;
-                case WAIT:
-                    tPool.threadWait();
-                    free(wurk);
-                    break;
-                default:
-                    //return back to queue
-                    tPool.enqueue(wurk);
-                    break;
-            }
-            tPool.threadIdle(std::this_thread::get_id());
-        }
-    }
+void worker(ThreadPool &tPool, Hebi &engine, HQueue &que) {
+	tPool.storeThreadId(std::this_thread::get_id());
+	tPool.threadIdle(std::this_thread::get_id());
+	while (tPool.isRunning()) {
+		std::this_thread::sleep_for(std::chrono::microseconds(10));
+		uint32_t *wurk = que.pull();
+		if (wurk != NULL) {
+			//tPool.threadBusy(std::this_thread::get_id());
+			switch (wurk[0]) {
+				case FLUID:
+					for (int i = wurk[1]; i > wurk[3]; i--) {
+						for (int j = wurk[2]; j > wurk[4]; j--) {
+							engine.fluidSim(i, j);
+						}
+					}
+					free(wurk);
+					break;
+				case PHYS:
+					for (int i = wurk[1]; i > wurk[3]; i--) {
+						for (int j = wurk[2]; j > wurk[4]; j--) {
+							engine.physSim(i, j);
+						}
+					}
+					free(wurk);
+					break;
+				case WAIT:
+					tPool.threadWait();
+					free(wurk);
+					break;
+				default:
+					//return back to queue
+					tPool.enqueue(wurk);
+					break;
+			}
+			tPool.threadIdle(std::this_thread::get_id());
+		}
+	}
 }

@@ -1,6 +1,7 @@
 #include "input_manager.h"
 #include <SDL2/SDL.h>
 #include "3rdparty/mlibc_log.h"
+#include "display_manager.h"
 
 namespace InputManager
 {
@@ -19,7 +20,7 @@ namespace InputManager
 	{
 		mlibc_inf("InputManager::init().");
 	}
-	
+
 	// Quit (clears memory)
 	void quit()
 	{
@@ -27,7 +28,7 @@ namespace InputManager
 	}
 
 	// Process SDL2 input
-	bool SDLInput(){
+	bool SDLInput() {
 		SDL_Event sdl_event;
 
 		while (SDL_PollEvent(&sdl_event))
@@ -82,7 +83,7 @@ namespace InputManager
 				} break;
 				case SDL_QUIT:
 				{
-					running = false;
+					return false;
 				} break;
 			}
 		}

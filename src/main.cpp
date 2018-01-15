@@ -1,6 +1,5 @@
 #include <iostream>
 #include <ctime>
-#include <unistd.h>
 #include <SDL2/SDL.h>
 #include "3rdparty/mlibc_log.h"
 #include "input_manager.h"
@@ -9,8 +8,8 @@
 #include "texture_manager.h"
 #include "level.h"
 #include "math.h"
-#include "Hebi.hpp"
-#include "Tick.hpp"
+#include "hebi.h"
+#include "Tick.h"
 
 
 mlibc_log_logger * mlibc_log_instance = NULL;
@@ -28,7 +27,7 @@ bool running = true;
 
 
 
-bool gameLoop(){
+bool gameLoop() {
 
 	clock_t startClock;
 	clock_t tickStartClock;
@@ -36,24 +35,24 @@ bool gameLoop(){
 	Tick tick;
 
 
-	
+
 	tickStartClock = clock();
 	startClock = clock();
 	while (running)
 	{
 		// Handle SDL events
-		if(!InputManager::SDLInput())
+		if (!InputManager::SDLInput())
 			running = false;
 		endClock = clock();
-		float timems = ((float)(endClock - startClock)/(float)CLOCKS_PER_SEC)*1000.0;
-		float tickTimems = ((float)(endClock - tickStartClock)/(float)CLOCKS_PER_SEC)*1000.0;
-		if(timems>=1000/engine.maxfps()){
+		float timems = ((float)(endClock - startClock) / (float)CLOCKS_PER_SEC)*1000.0;
+		float tickTimems = ((float)(endClock - tickStartClock) / (float)CLOCKS_PER_SEC)*1000.0;
+		if (timems >= 1000 / engine.maxfps()) {
 			engine.render();
 			startClock = clock();
-			
+
 		}
-		if(tickTimems >= 1000/engine.tickrate()){
-			if(!engine.nextTick(&tick)){
+		if (tickTimems >= 1000 / engine.tickrate()) {
+			if (!engine.nextTick(&tick)) {
 				running = false;
 			}
 			tickStartClock = clock();
@@ -77,10 +76,10 @@ int main(int argc, char * argv[])
 	engine_cfg.gameSpeed = 1.0;
 	engine.init(engine_cfg);
 
-	if(!gameLoop()){
+	if (!gameLoop()) {
 		return_code = 1;
 	}
-	
+
 	// Quit gracefully
 
 	mlibc_log_free();

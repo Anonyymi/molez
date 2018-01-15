@@ -1,7 +1,7 @@
 #ifndef WATER_HPP
 #define WATER_HPP
 
-#include "Material.hpp"
+#include "material.h"
 
 
 #endif

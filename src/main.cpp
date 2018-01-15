@@ -1,6 +1,6 @@
 #include <iostream>
 #include <ctime>
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include "3rdparty/mlibc_log.h"
 #include "input_manager.h"
 #include "display_manager.h"

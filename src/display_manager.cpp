@@ -1,5 +1,5 @@
 #include "display_manager.h"
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include "3rdparty/mlibc_log.h"
 #include "texture_manager.h"
 #include "math.h"

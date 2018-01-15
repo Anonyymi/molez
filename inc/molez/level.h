@@ -63,6 +63,7 @@ typedef struct Area{
 	Material **materialmap;
 	Pixel **bitmap;
 	Direction **gravitymap;
+	Vector2 **vectormap;
 } Area;
 
 
@@ -74,16 +75,18 @@ public:
 	Level();
 	~Level();
 
-	void freeAreaBuffers();
-	void allocateAreaBuffers();
+	void freeAreaBuffers(Area &area);
+	void allocateAreaBuffers(Area &area);
 
 	void setConfig(LevelConfig cfg);
 	void generate();
 	void updateGravity(uint32_t y,uint32_t x, Area &area);
+	void updateGravity(uint32_t y,uint32_t x);
 	void generateGravitymap(uint32_t height);
 	void generate_clumps(Material_t m, Material_t t, size_t amount, uint8_t chance, uint8_t n_min = 0, uint8_t n_max = 0);
 	void regenerate(uint32_t seed);
 	uint32_t sample_pixel(uint32_t s_y, uint32_t s_x, Area &area);
+	void swapLocation(int srcY, int srcX, int destY, int destX, Area &area);
 	void alter(Material_t m, uint8_t r, int32_t x, int32_t y);
 	void swapPixel(uint32_t y0,uint32_t x0,uint32_t y1,uint32_t x1);
 	void render(uint32_t height);

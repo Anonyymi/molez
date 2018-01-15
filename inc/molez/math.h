@@ -128,6 +128,9 @@ namespace Math
 		std::uniform_int_distribution<> m_dist;			// RNG distribution
 	};
 
+	typedef struct Vector2{
+		float x,y;
+	} Vector2;
 
 
 }

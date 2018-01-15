@@ -74,7 +74,7 @@ init(EngineConfig cfg){
 
 
 
-    tPool.spawn(engineCfg.threadCount, tPool, *this, workQueue);
+    tPool.spawn(engineCfg.threadCount, tPool, *this);
 }
 
 void Hebi::
@@ -117,19 +117,20 @@ gameSpeed(){
 void Hebi::
 processInput(Tick *tick){
     if (InputManager::MOUSE_L){
-        level.alter(M_WATER, 8, InputManager::MOUSE_X, InputManager::MOUSE_Y);
+        level.alter(M_WATER, 40, InputManager::MOUSE_X, InputManager::MOUSE_Y);
     }
     else if (InputManager::MOUSE_M){
-        level.alter(M_LAVA, 8, InputManager::MOUSE_X, InputManager::MOUSE_Y);
+        level.alter(M_LAVA, 40, InputManager::MOUSE_X, InputManager::MOUSE_Y);
     }
     else if (InputManager::MOUSE_R){
-        level.alter(M_VOID, 12, InputManager::MOUSE_X, InputManager::MOUSE_Y);
+        level.alter(M_VOID, 40, InputManager::MOUSE_X, InputManager::MOUSE_Y);
     }
 
     // Level reset
     if (InputManager::KBOARD[SDLK_r]){
-        while(!syncThreads());
+        tPool.waitThreads();
         level.regenerate(rand());
+        tPool.resumeThreads();
     }
 
     if (InputManager::KBOARD[SDLK_d]){
@@ -185,10 +186,14 @@ void Hebi::
 fluidSim(uint32_t y, uint32_t x){
     level.update(y,x);
 }
+void Hebi::
+physSim(uint32_t y, uint32_t x){
+    level.updateGravity(y,x);
+}
 
 void Hebi::
 render(){
-    while(!syncThreads());
+    tPool.syncThreads();
 
 
     for(int i=1070;i>0; i--){            
@@ -199,56 +204,44 @@ render(){
     DisplayManager::render();
 }
 
-bool Hebi::
-syncThreads(){
-    if(tPool.isBusy()){
-        std::this_thread::sleep_for(std::chrono::microseconds(50));
-        return false;
-    }
-    return true;
-}
 
 
 
 bool Hebi::
 nextTick(Tick *tick){
 
-    while(!syncThreads());
+    
 
+
+    tPool.syncThreads();
+
+    processInput(tick);
+    /*
+    for(int i=0;i<1070;i++)
+        level.generateGravitymap(i);
+    */
+    /*
     uint32_t *wurk = (uint32_t*)malloc(sizeof(uint32_t)*5);
-    wurk[0] = FLUID;
+    wurk[0] = PHYS;
     wurk[1] = 1070; //to height
-    wurk[2] = 480; //to width
+    wurk[2] = 1911; //to width
     wurk[3] = 1; //from height
     wurk[4] = 1; //from width;
     workQueue.push(wurk);
 
-    wurk = (uint32_t*)malloc(sizeof(uint32_t)*5);
-    wurk[0] = FLUID;
-    wurk[1] = 1070; //to height
-    wurk[2] = 960; //to width
-    wurk[3] = 1; //from height
-    wurk[4] = 480; //from width;
-    workQueue.push(wurk);
+    */
 
-    wurk = (uint32_t*)malloc(sizeof(uint32_t)*5);
-    wurk[0] = FLUID;
-    wurk[1] = 1070; //to height
-    wurk[2] = 1440; //to width
-    wurk[3] = 1; //from height
-    wurk[4] = 960; //from width;
-    workQueue.push(wurk);
 
-    wurk = (uint32_t*)malloc(sizeof(uint32_t)*5);
+    uint32_t *wurk = (uint32_t*)malloc(sizeof(uint32_t)*5);
     wurk[0] = FLUID;
     wurk[1] = 1070; //to height
-    wurk[2] = 1910; //to width
+    wurk[2] = 1911; //to width
     wurk[3] = 1; //from height
-    wurk[4] = 1440; //from width;
-    workQueue.push(wurk);
+    wurk[4] = 1; //from width;
+    tPool.enqueue(wurk);
     
     
-    processInput(tick);
+    
 
     movePlayer(tick);
 
@@ -265,6 +258,8 @@ nextTick(Tick *tick){
    
     tick->count++;
 
+    tPool.syncThreads();
+
     if (InputManager::KBOARD[SDLK_ESCAPE])
         return false;
     else  
@@ -274,15 +269,21 @@ nextTick(Tick *tick){
 
 
 
-uint32_t ThreadPool::
-busyThreads(){
-    return threadCount - idleCount;
+
+
+
+
+ThreadPool::
+ThreadPool(){
+    running = true;
+}
+ThreadPool::
+~ThreadPool(){
+
 }
 
-uint32_t ThreadPool::
-totalThreads(){
-    return threadCount;
-}
+
+
 
 bool ThreadPool::
 isBusy(){
@@ -305,6 +306,100 @@ threadBusy(std::thread::id uid){
     idleCount--;
 }
 
+
+void ThreadPool::
+syncThreads(){
+    waitThreads();
+    resumeThreads();
+}
+
+
+void ThreadPool::
+storeThreadId(std::thread::id uid){
+    threadIds.push_back(uid);
+}
+
+bool ThreadPool::
+spawn(int32_t n, ThreadPool &tPool, Hebi &engine){
+    for(int i=0;i<n;i++){
+        threads.push_back(std::thread(worker, std::ref(tPool), std::ref(engine),std::ref(queue)));
+        threadCount++;
+    }
+    return true;
+}
+
+void ThreadPool::
+enqueue(uint32_t *data){
+    queue.push(data);
+}
+
+bool ThreadPool::
+isRunning(){
+    return running;
+}
+
+void ThreadPool::
+waitThreads(){
+    uint32_t *d;
+    for(int i=0;i<threads.size();i++){
+        d = (uint32_t*)malloc(sizeof(uint32_t));
+        d[0] = WAIT;
+        enqueue(d);
+    }
+    std::this_thread::sleep_for(std::chrono::microseconds(200));
+}
+
+
+void ThreadPool::
+resumeThreads(){
+    uint32_t *d;
+    for(int i=0;i<threads.size();i++){
+        d = (uint32_t*)malloc(sizeof(uint32_t));
+        d[0] = RESUME;
+        enqueue(d);
+    }
+}
+
+uint32_t ThreadPool::
+busyThreads(){
+    return threadCount - idleCount;
+}
+
+uint32_t ThreadPool::
+totalThreads(){
+    return threadCount;
+}
+
+
+
+
+
+void ThreadPool::
+quit(){
+    running = false;
+    for(int i=0;i<threads.size();i++){
+        threads.at(i).join();
+    }
+}
+
+
+void ThreadPool::
+threadWait(){
+    uint32_t *wurk;
+    while(true){
+        std::this_thread::sleep_for(std::chrono::microseconds(100));
+        wurk = queue.pull();
+        if(wurk == NULL)
+            continue;
+        if(wurk[0] == RESUME){
+            return;
+        } else {
+            enqueue(wurk);
+        }
+    }
+
+}
+
 void worker(ThreadPool &tPool, Hebi &engine, HQueue &que){
     tPool.storeThreadId(std::this_thread::get_id());
     tPool.threadIdle(std::this_thread::get_id());
@@ -320,49 +415,26 @@ void worker(ThreadPool &tPool, Hebi &engine, HQueue &que){
                             engine.fluidSim(i,j);
                         }
                     }
+                    free(wurk);
+                    break;
+                case PHYS:
+                    for(int i=wurk[1];i>wurk[3];i--){
+                        for(int j = wurk[2]; j>wurk[4];j--){
+                            engine.physSim(i,j);
+                        }
+                    }
+                    free(wurk);
+                    break;
+                case WAIT:
+                    tPool.threadWait();
+                    free(wurk);
+                    break;
+                default:
+                    //return back to queue
+                    tPool.enqueue(wurk);
+                    break;
             }
             tPool.threadIdle(std::this_thread::get_id());
-            free(wurk);
         }
-    }
-}
-
-
-ThreadPool::
-ThreadPool(){
-    running = true;
-}
-ThreadPool::
-~ThreadPool(){
-
-}
-
-bool ThreadPool::
-isRunning(){
-    return running;
-}
-
-void ThreadPool::
-storeThreadId(std::thread::id uid){
-    threadIds.push_back(uid);
-}
-
-bool ThreadPool::
-spawn(int32_t n, ThreadPool &tPool, Hebi &engine, HQueue &que){
-    for(int i=0;i<n;i++){
-        threads.push_back(std::thread(worker, std::ref(tPool), std::ref(engine),std::ref(que)));
-        threadCount++;
-    }
-    return true;
-}
-
-
-
-
-void ThreadPool::
-quit(){
-    running = false;
-    for(int i=0;i<threads.size();i++){
-        threads.at(i).join();
     }
 }

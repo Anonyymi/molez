@@ -36,13 +36,13 @@ class ThreadPool{
 private:
     std::vector<std::thread> threads;
     std::vector<std::thread::id> threadIds;
-
     std::atomic_uint threadCount;
     std::atomic_uint idleCount;
     bool running;
     std::atomic_bool busy;
-
     std::map<std::thread::id , bool> idleThreads;
+    HQueue queue;
+
 public:
 
     ThreadPool();
@@ -50,7 +50,7 @@ public:
 
     //Start n amount of threads
     void storeThreadId(std::thread::id uid);
-    bool spawn(int32_t n, ThreadPool &tPool, Hebi &engine, HQueue &que);
+    bool spawn(int32_t n, ThreadPool &tPool, Hebi &engine);
     bool isRunning();
     //uint32_t idleThreads();
     uint32_t busyThreads();
@@ -58,6 +58,14 @@ public:
     bool isBusy();
     void threadIdle(std::thread::id uid);
     void threadBusy(std::thread::id uid);
+
+    void threadWait();
+
+    void enqueue(uint32_t *data);
+    void syncThreads();
+    void waitThreads();
+    void resumeThreads();
+
     void quit();
 
 
@@ -81,7 +89,7 @@ private:
     bool debug = false;
     Player player;
     LevelConfig level_cfg;
-    HQueue workQueue;
+    
 
 
 public:
@@ -98,9 +106,12 @@ public:
     void processInput(Tick *tick);
     void movePlayer(Tick *tick);
     bool nextTick(Tick *tick);
+
     void fluidSim(uint32_t y, uint32_t x);
+    void physSim(uint32_t y, uint32_t x);
+
     void render();
-    bool syncThreads();
+    
 
     void threadWork();
 
@@ -120,7 +131,11 @@ typedef struct ThreadData{
 }ThreadData;
 
 typedef enum Work_t : uint32_t{
+    WAIT = 0,
+    RESUME = 1,
     FLUID = 100,
+    PHYS = 101,
+    FINISH = 9990,
 
 } Work_t;
 

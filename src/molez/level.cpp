@@ -14,11 +14,12 @@ Level::Level(){
 }
 
 Level::~Level(){
-	freeAreaBuffers();
+	for(auto &area : areas)
+		freeAreaBuffers(area);
 
 }
 
-void Level::freeAreaBuffers(){
+void Level::freeAreaBuffers(Area &area){
 	/*
 	for(auto& area : areas){
 		for(uint32_t i = 0; i<levelCfg.height;i++){
@@ -34,16 +35,16 @@ void Level::freeAreaBuffers(){
 	}
 	*/
 }
-void Level::allocateAreaBuffers(){
-	for(auto& area : areas){
-		area.materialmap = (Material**)malloc(sizeof(Material*)*levelCfg.height);
-		area.bitmap = (Pixel**)malloc(sizeof(Pixel*)*levelCfg.height);
-		area.gravitymap = (Direction**)malloc(sizeof(Direction*)*levelCfg.height);
-		for(uint32_t i = 0; i<levelCfg.height;i++){
-			area.materialmap[i] = (Material*)malloc(sizeof(Material)*levelCfg.width);
-			area.bitmap[i] = (Pixel*)malloc(sizeof(Pixel)*levelCfg.width);
-			area.gravitymap[i] = (Direction*)malloc(sizeof(Direction)*levelCfg.width);
-		}
+void Level::allocateAreaBuffers(Area &area){
+	area.materialmap = (Material**)malloc(sizeof(Material*)*levelCfg.height);
+	area.bitmap = (Pixel**)malloc(sizeof(Pixel*)*levelCfg.height);
+	area.gravitymap = (Direction**)malloc(sizeof(Direction*)*levelCfg.height);
+	area.vectormap = (Vector2**)malloc(sizeof(Vector2*)*levelCfg.height);
+	for(uint32_t i = 0; i<levelCfg.height;i++){
+		area.materialmap[i] = (Material*)malloc(sizeof(Material)*levelCfg.width);
+		area.bitmap[i] = (Pixel*)malloc(sizeof(Pixel)*levelCfg.width);
+		area.gravitymap[i] = (Direction*)malloc(sizeof(Direction)*levelCfg.width);
+		area.vectormap[i] = (Vector2*)malloc(sizeof(Vector2)*levelCfg.width);
 	}
 }
 
@@ -57,11 +58,12 @@ void Level::setConfig(LevelConfig cfg){
 
 void Level::generate(){
 
-	freeAreaBuffers();
-	allocateAreaBuffers();
+	
 	// Reset liquids
 	// Iterate through each pixel to generate level geometry
 	for(auto &area : areas){
+		freeAreaBuffers(area);
+		allocateAreaBuffers(area);
 		for (int32_t i = 0; i < levelCfg.height; i++){
 			for (int32_t j = 0; j < levelCfg.width; j++){
 				// Noise value at x,y, re-scaled from -1,+1 to 0,+1
@@ -73,11 +75,14 @@ void Level::generate(){
 				int n_ivalue = static_cast<int>(n_value * 255.0f);
 
 				// Select material
-				if (n_value <= 0.33f)
+				if (n_value <= 0.33f){
 					area.materialmap[i][j].id = M_VOID;
-				else if (n_value >= 0.33f)
+					area.materialmap[i][j].state = GAS;
+				}
+				else if (n_value >= 0.33f){
 					area.materialmap[i][j].id = M_DIRT;
-
+					area.materialmap[i][j].state = SOLID;
+				}
 				// Sample texture rgb for the pixel
 				area.bitmap[i][j].rgba = sample_pixel(i, j, area);
 			}
@@ -110,14 +115,19 @@ void Level::updateGravity(uint32_t y, uint32_t x, Area &area){
 	else
 		area.gravitymap[y][x] = STAY;
 }
+void Level::updateGravity(uint32_t y, uint32_t x){
+	updateGravity(y,x,areas.at(0));
+}
 
 void Level::generateGravitymap(uint32_t height){
-
+	Area area = areas.at(0);
+	for(int i=1;i<levelCfg.width-1;i++){
+		updateGravity(height,i,area);
+	}
 
 }
 
-void Level::generate_clumps(Material_t m, Material_t t, size_t amount, uint8_t chance, uint8_t n_min, uint8_t n_max)
-{
+void Level::generate_clumps(Material_t m, Material_t t, size_t amount, uint8_t chance, uint8_t n_min, uint8_t n_max){
 	/*
 	for (size_t i = 0; i < amount; i++)
 	{
@@ -156,8 +166,7 @@ void Level::generate_clumps(Material_t m, Material_t t, size_t amount, uint8_t c
 	*/
 }
 
-void Level::regenerate(uint32_t seed)
-{
+void Level::regenerate(uint32_t seed){
 	mlibc_inf("Level::regenerate(%u). Regenerating level...", seed);
 
 	// Re-seed noise generator(s)
@@ -186,8 +195,17 @@ uint32_t Level::sample_pixel(uint32_t s_y, uint32_t s_x, Area &area){
 	return argb;
 }
 
-void Level::alter(Material_t m, uint8_t r, int32_t x, int32_t y)
-{
+void Level::
+swapLocation(int srcY, int srcX, int destY, int destX, Area &area){
+	Material tmp = area.materialmap[destY][destX];
+	Pixel tmpp = area.bitmap[destY][destX];
+	area.materialmap[destY][destX] = area.materialmap[srcY][srcX];
+	area.bitmap[destY][destX] = area.bitmap[srcY][srcX];
+	area.materialmap[srcY][srcX] = tmp;
+	area.bitmap[srcY][srcX] = tmpp;
+}
+
+void Level::alter(Material_t m, uint8_t r, int32_t x, int32_t y){
 	// Calculate start coords
 	int32_t x_start = x - r;
 	int32_t y_start = y - r;
@@ -212,6 +230,7 @@ void Level::alter(Material_t m, uint8_t r, int32_t x, int32_t y)
 				}
 
 				area.materialmap[i][j].id = m;
+				area.materialmap[i][j].state = LIQUID;
 				area.bitmap[i][j].rgba = sample_pixel(i,j,area);
 			}
 		}
@@ -229,52 +248,24 @@ void Level::render(uint32_t height){
 void Level::update(uint32_t y, uint32_t x){
 	uint32_t tmp;
 	Area area = areas.at(0);
-	//TODO: Use liquid property
-	if(area.materialmap[y][x].id == M_WATER || area.materialmap[y][x].id == M_LAVA){
-		tmp = area.bitmap[y][x].rgba;
+	if(area.materialmap[y][x].state == LIQUID){
 		updateGravity(y,x,area);
 		switch(area.gravitymap[y][x]){
 			case DOWN:
-				if(area.materialmap[y+1][x].id == M_VOID){						
-					area.materialmap[y+1][x].id = area.materialmap[y][x].id;
-					area.materialmap[y][x].id = M_VOID;
-					
-					area.bitmap[y][x].rgba = 0x00000000;
-					area.bitmap[y+1][x].rgba = tmp;
-				}
+				swapLocation(y,x,y+1,x,area);				
 				break;
-			case DOWNLEFT:
-				if(area.materialmap[y+1][x-1].id == M_VOID){						
-					area.materialmap[y+1][x-1].id = area.materialmap[y][x].id;
-					area.materialmap[y][x].id = M_VOID;
-					area.bitmap[y][x].rgba = 0x00000000;
-					area.bitmap[y+1][x-1].rgba = tmp;
-				}
+			case DOWNLEFT:						
+				swapLocation(y,x,y+1,x-1,area);
 				break;
-			case DOWNRIGHT:
-				if(area.materialmap[y+1][x+1].id == M_VOID){						
-					area.materialmap[y+1][x+1].id = area.materialmap[y][x].id;
-					area.materialmap[y][x].id = M_VOID;
-					area.bitmap[y][x].rgba = 0x00000000;
-					area.bitmap[y+1][x+1].rgba = tmp;
-				}
+			case DOWNRIGHT:						
+				swapLocation(y,x,y+1,x+1,area);
 				break;
-			case RIGHT:
-				if(area.materialmap[y][x+1].id == M_VOID){						
-					area.materialmap[y][x+1].id = area.materialmap[y][x].id;
-					area.materialmap[y][x].id = M_VOID;
-					area.bitmap[y][x].rgba = 0x00000000;
-					area.bitmap[y][x+1].rgba = tmp;
-				}
+			case RIGHT:					
+				swapLocation(y,x,y,x+1,area);
 				break;
-			case LEFT:
-				if(area.materialmap[y][x-1].id == M_VOID){						
-					area.materialmap[y][x-1].id = area.materialmap[y][x].id;
-					area.materialmap[y][x].id = M_VOID;
-					area.bitmap[y][x].rgba = 0x00000000;
-					area.bitmap[y][x-1].rgba = tmp;
-				}
-				break;
+			case LEFT:					
+				swapLocation(y,x,y+1,x,area);
+			break;
 		}
 		
 	}

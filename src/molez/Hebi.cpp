@@ -138,12 +138,11 @@ processInput(Tick *tick){
     }
     //Change tickrate
     if (InputManager::KBOARD[SDLK_j]){
-        engineCfg.tickrate++;
+        engineCfg.tickrate = 128;
     }
 
     if (InputManager::KBOARD[SDLK_k]){
-        if(engineCfg.tickrate>1)
-            engineCfg.tickrate--;
+            engineCfg.tickrate = 1;
     }
 
     //Change fps
@@ -193,15 +192,19 @@ physSim(uint32_t y, uint32_t x){
 
 void Hebi::
 render(){
-    tPool.syncThreads();
+    tPool.waitThreads();
 
-
-    for(int i=1070;i>0; i--){            
-	    level.render(i);
+    Pixel **bitmap = level.getBitmap();
+    for(uint32_t j = 0;j<level_cfg.height;j++){
+        for (uint32_t i = 0; i < level_cfg.width; i++){
+            Pixel pixel = bitmap[j][i];
+            //DisplayManager::set_pixel(i, j, pixel.b, pixel.g, pixel.r);
+            DisplayManager::set_pixel(i, j, pixel.rgba);
+        }
     }
-
-
     DisplayManager::render();
+    tPool.resumeThreads();
+
 }
 
 
@@ -213,7 +216,7 @@ nextTick(Tick *tick){
     
 
 
-    tPool.syncThreads();
+    //tPool.syncThreads();
 
     processInput(tick);
     /*
@@ -346,7 +349,8 @@ waitThreads(){
         d[0] = WAIT;
         enqueue(d);
     }
-    std::this_thread::sleep_for(std::chrono::microseconds(200));
+    while(queue.size() != 0)
+        std::this_thread::sleep_for(std::chrono::microseconds(150));
 }
 
 
@@ -387,7 +391,7 @@ void ThreadPool::
 threadWait(){
     uint32_t *wurk;
     while(true){
-        std::this_thread::sleep_for(std::chrono::microseconds(100));
+        std::this_thread::sleep_for(std::chrono::microseconds(50));
         wurk = queue.pull();
         if(wurk == NULL)
             continue;

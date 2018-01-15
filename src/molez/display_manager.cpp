@@ -237,4 +237,33 @@ namespace DisplayManager
 		}
 	}
 
+	void set_pixel(size_t x, size_t y, uint32_t rgba)
+	{
+		if (ACTIVE_WINDOW != nullptr)
+		{
+			// Calculate camera translation
+			if (ACTIVE_CAMERA != nullptr)
+			{
+				// Camera translation
+				x -= ACTIVE_CAMERA->x;
+				y += ACTIVE_CAMERA->y;
+
+				// Window offset
+				x += ACTIVE_WINDOW->width / 2;
+				y += ACTIVE_WINDOW->height / 2;
+			}
+
+			// Prevent altering memory outside fbo
+			if (x < 0 || x >= ACTIVE_WINDOW->width || y < 0 || y >= ACTIVE_WINDOW->height)
+				return;
+
+			ACTIVE_WINDOW->framebuffer[x + y * ACTIVE_WINDOW->width] = rgba;
+		}
+		else
+		{
+			mlibc_err("DisplayManager::set_pixel(). Error, ACTIVE_WINDOW is pointing to NULL!");
+		}
+	}
+
+
 }

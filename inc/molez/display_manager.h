@@ -62,6 +62,7 @@ namespace DisplayManager
 	void render();
 	void clear(const int32_t argb);
 	void set_pixel(size_t x, size_t y, uint8_t r, uint8_t g, uint8_t b);
+	void set_pixel(size_t x, size_t y, uint32_t rgba);
 
 }
 

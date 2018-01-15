@@ -238,10 +238,7 @@ void Level::alter(Material_t m, uint8_t r, int32_t x, int32_t y){
 }
 
 void Level::render(uint32_t height){
-	for (uint32_t i = 0; i < levelCfg.width; i++){
-		Pixel pixel = areas.at(0).bitmap[height][i];
-		DisplayManager::set_pixel(i, height, pixel.b, pixel.g, pixel.r);
-	}
+
 }
 
 
@@ -270,5 +267,10 @@ void Level::update(uint32_t y, uint32_t x){
 		
 	}
 
+}
+
+
+Pixel **Level::getBitmap(){
+	return areas.at(0).bitmap;
 }
 

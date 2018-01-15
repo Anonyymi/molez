@@ -91,6 +91,8 @@ public:
 	void swapPixel(uint32_t y0,uint32_t x0,uint32_t y1,uint32_t x1);
 	void render(uint32_t height);
 	void update(uint32_t y,uint32_t x);
+	Pixel **getBitmap();
+
 
 private:
 	LevelConfig levelCfg;

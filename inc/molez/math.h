@@ -128,9 +128,38 @@ namespace Math
 		std::uniform_int_distribution<> m_dist;			// RNG distribution
 	};
 
-	typedef struct Vector2{
+	class Vector2{		
+	public:
+		//No need for privacy
 		float x,y;
-	} Vector2;
+
+		Vector2(float newx, float newy);
+		Vector2();
+		~Vector2();
+
+
+		void add(Vector2 vec);
+		void add(float newx, float newy);
+
+		void sub(Vector2 vec);
+		void sub(float newx, float newy);
+
+		void mul(Vector2 vec);
+		void mul(float multiplier);
+		void mul(float multiplierX, float multiplierY);
+
+		float dot(Vector2 vec);
+		float cross(Vector2 vec);
+
+		void rotate(float angle);
+
+		
+		float len();
+		float angle();
+
+
+
+	};
 
 
 }

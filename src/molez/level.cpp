@@ -10,6 +10,8 @@
 Level::Level(){
 	Area a;
 	areas.push_back(a);
+	Area b;
+	areasCopy.push_back(b);
 
 }
 

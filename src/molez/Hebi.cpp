@@ -129,6 +129,7 @@ processInput(Tick *tick){
     // Level reset
     if (InputManager::KBOARD[SDLK_r]){
         tPool.waitThreads();
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
         level.regenerate(rand());
         tPool.resumeThreads();
     }
@@ -192,7 +193,7 @@ physSim(uint32_t y, uint32_t x){
 
 void Hebi::
 render(){
-    tPool.waitThreads();
+    //tPool.waitThreads();
 
     Pixel **bitmap = level.getBitmap();
     for(uint32_t j = 0;j<level_cfg.height;j++){
@@ -203,7 +204,7 @@ render(){
         }
     }
     DisplayManager::render();
-    tPool.resumeThreads();
+    //tPool.resumeThreads();
 
 }
 
@@ -261,7 +262,7 @@ nextTick(Tick *tick){
    
     tick->count++;
 
-    tPool.syncThreads();
+    //tPool.syncThreads();
 
     if (InputManager::KBOARD[SDLK_ESCAPE])
         return false;

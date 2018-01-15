@@ -25,6 +25,7 @@ enum Material_t : uint8_t{
 typedef struct Material{
 	Material_t id;
 	MaterialState_t state;
+	uint32_t temperature;
 	//Add more identifiers here
 } Material;
 

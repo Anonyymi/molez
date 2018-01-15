@@ -98,6 +98,7 @@ private:
 	LevelConfig levelCfg;
 	SimplexGen m_simplex;
 	std::vector<Area> areas;
+	std::vector<Area> areasCopy;
 };
 
 

@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <cmath>
 
+
 namespace Math
 {
 
@@ -133,16 +134,16 @@ namespace Math
 		//No need for privacy
 		float x,y;
 
-		Vector2(float newx, float newy);
+		Vector2(float scalarX, float newy);
 		Vector2();
 		~Vector2();
 
 
 		void add(Vector2 vec);
-		void add(float newx, float newy);
+		void add(float scalarX, float newy);
 
 		void sub(Vector2 vec);
-		void sub(float newx, float newy);
+		void sub(float scalarX, float newy);
 
 		void mul(Vector2 vec);
 		void mul(float multiplier);

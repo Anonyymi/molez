@@ -9,8 +9,6 @@
 
 using namespace Math;
 
-
-
 enum Level_t : uint8_t
 {
 	L_EARTH = 0

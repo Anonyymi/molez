@@ -1,17 +1,8 @@
-/*
 #ifndef AUDIO_MANAGER_H
 #define AUDIO_MANAGER_H
 
 #include <string>
 #include <map>
-
-#include "3rdparty/mlibc_log.h"
-
-#ifdef __linux__
-#include <SDL2/SDL.h>
-#else
-#include <SDL.h>
-#endif
 
 typedef struct _Mix_Music Mix_Music;
 typedef struct Mix_Chunk Mix_Chunk;
@@ -43,6 +34,4 @@ namespace AudioManager
 
 }
 
-
 #endif // AUDIO_MANAGER_H
-*/

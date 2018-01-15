@@ -1,5 +1,6 @@
-/*
 #include "audio_manager.h"
+#include <SDL2/SDL.h>
+#include "3rdparty/mlibc_log.h"
 
 
 namespace AudioManager

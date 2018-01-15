@@ -18,11 +18,11 @@ namespace InputManager
 	// Init
 	void init();
 
-	bool SDLInput();
-
 	// Quit (clears memory)
 	void quit();
 
+	// Process SDL2 input
+	bool SDLInput();
 }
 
 

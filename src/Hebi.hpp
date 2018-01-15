@@ -18,12 +18,7 @@ Made by Lumipallo 2018-
 #include "queue.hpp"
 #include <atomic>
 #include <map>
-
-#ifdef __linux__
 #include <SDL2/SDL.h>
-#else
-#include <SDL.h>
-#endif
 
 
 

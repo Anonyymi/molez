@@ -1,11 +1,6 @@
 #include "input_manager.h"
-#include "3rdparty/mlibc_log.h"
-
-#ifdef __linux__
 #include <SDL2/SDL.h>
-#else
-#include <SDL.h>
-#endif
+#include "3rdparty/mlibc_log.h"
 
 namespace InputManager
 {
@@ -24,8 +19,17 @@ namespace InputManager
 	{
 		mlibc_inf("InputManager::init().");
 	}
+	
+	// Quit (clears memory)
+	void quit()
+	{
+
+	}
+
+	// Process SDL2 input
 	bool SDLInput(){
 		SDL_Event sdl_event;
+
 		while (SDL_PollEvent(&sdl_event))
 		{
 			switch (sdl_event.type)
@@ -58,22 +62,32 @@ namespace InputManager
 				} break;
 				case SDL_MOUSEMOTION:
 				{
-					InputManager::MOUSE_X = sdl_event.motion.x;
-					InputManager::MOUSE_Y = sdl_event.motion.y;
+					int x_t = sdl_event.motion.x / DisplayManager::ACTIVE_WINDOW->scale;
+					int y_t = sdl_event.motion.y / DisplayManager::ACTIVE_WINDOW->scale;
+
+					// Negate camera translation
+					if (DisplayManager::ACTIVE_CAMERA != nullptr)
+					{
+						// Camera translation
+						x_t += DisplayManager::ACTIVE_CAMERA->x;
+						y_t -= DisplayManager::ACTIVE_CAMERA->y;
+
+						// Window offset
+						x_t -= DisplayManager::ACTIVE_WINDOW->width / 2;
+						y_t -= DisplayManager::ACTIVE_WINDOW->height / 2;
+					}
+
+					InputManager::MOUSE_X = x_t;
+					InputManager::MOUSE_Y = y_t;
 				} break;
 				case SDL_QUIT:
 				{
-					return false;
+					running = false;
 				} break;
 			}
-
 		}
-		return true;
-	}
-	// Quit (clears memory)
-	void quit()
-	{
 
+		return true;
 	}
 
 }

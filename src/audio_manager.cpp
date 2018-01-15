@@ -26,7 +26,6 @@ namespace AudioManager
 		}
 		else
 		{
-			// TODO: Throw runtime exception
 			mlibc_err("AudioManager::init(). Mix_Init Error: %s", SDL_GetError());
 		}
 
@@ -57,6 +56,8 @@ namespace AudioManager
 		}
 
 		Mix_Quit();
+
+		mlibc_inf("AudioManager::quit().");
 	}
 
 	// Music (mp3, wav, ogg, flac, mod, xm, etc..)
@@ -75,7 +76,7 @@ namespace AudioManager
 				return nullptr;
 			}
 
-			mlibc_dbg("AudioManager::load_music(%s). Loaded file into memory.", file_path.c_str());
+			mlibc_inf("AudioManager::load_music(%s). Loaded file into memory.", file_path.c_str());
 		}
 
 		return LOADED_MUSIC[file_path];
@@ -93,8 +94,10 @@ namespace AudioManager
 				mlibc_err("AudioManager::play_music(%s). Error playing music!", file_path.c_str());
 				return;
 			}
-
-			mlibc_dbg("AudioManager::play_music(%s). Started playing music.", file_path.c_str());
+		}
+		else
+		{
+			mlibc_err("AudioManager::play_music(%s). Error playing music!", file_path.c_str());
 		}
 	}
 
@@ -119,7 +122,7 @@ namespace AudioManager
 				return nullptr;
 			}
 
-			mlibc_dbg("AudioManager::load_audio(%s). Loaded file into memory.", file_path.c_str());
+			mlibc_inf("AudioManager::load_audio(%s). Loaded file into memory.", file_path.c_str());
 		}
 
 		return LOADED_AUDIO[file_path];
@@ -136,8 +139,10 @@ namespace AudioManager
 				mlibc_err("AudioManager::play_audio(%s). Error playing audio!", file_path.c_str());
 				return;
 			}
-
-			mlibc_dbg("AudioManager::play_audio(%s). Started playing audio.", file_path.c_str());
+		}
+		else
+		{
+			mlibc_err("AudioManager::play_audio(%s). Error playing audio!", file_path.c_str());
 		}
 	}
 

@@ -34,6 +34,8 @@ namespace DisplayManager
 
 			mlibc_inf("DisplayManager::quit(). Destroyed Window instance.");
 		}
+
+		mlibc_inf("DisplayManager::quit().");
 	}
 
 	// Windows
@@ -113,7 +115,7 @@ namespace DisplayManager
 
 			LOADED_WINDOWS[title] = window;
 
-			mlibc_dbg("DisplayManager::load_window(%s). Loaded a new window into memory.", title.c_str());
+			mlibc_inf("DisplayManager::load_window(%s). Loaded a new window into memory.", title.c_str());
 		}
 
 		return LOADED_WINDOWS[title];
@@ -124,8 +126,6 @@ namespace DisplayManager
 		if (LOADED_WINDOWS.count(title) > 0)
 		{
 			ACTIVE_WINDOW = LOADED_WINDOWS[title];
-
-			mlibc_dbg("DisplayManager::activate_window(%s). Selected a new active window.", title.c_str());
 		}
 		else
 		{
@@ -151,7 +151,7 @@ namespace DisplayManager
 
 			LOADED_CAMERAS[identifier] = camera;
 
-			mlibc_dbg("DisplayManager::load_camera(%s). Loaded a new camera into memory.", identifier.c_str());
+			mlibc_inf("DisplayManager::load_camera(%s). Loaded a new camera into memory.", identifier.c_str());
 		}
 
 		return LOADED_CAMERAS[identifier];
@@ -306,8 +306,8 @@ namespace DisplayManager
 	void set_text(
 		size_t x,
 		size_t y,
-		size_t w,
-		size_t h,
+		size_t c_width,
+		size_t c_height,
 		std::string text,
 		uint8_t r,
 		uint8_t g,
@@ -332,12 +332,12 @@ namespace DisplayManager
 				}
 
 				// Calculate font size <-> char size ratio
-				float char_rat_w = static_cast<float>(font->char_width) / static_cast<float>(w);
-				float char_rat_h = static_cast<float>(font->char_height) / static_cast<float>(h);
+				float char_rat_w = static_cast<float>(font->char_width) / static_cast<float>(c_width);
+				float char_rat_h = static_cast<float>(font->char_height) / static_cast<float>(c_height);
 
-				for (size_t i = 0; i < w; i++)
+				for (size_t i = 0; i < c_width; i++)
 				{
-					for (size_t j = 0; j < h; j++)
+					for (size_t j = 0; j < c_height; j++)
 					{
 						// Calculate texcoords and sample the pixel + scale according to size diff
 						int char_tex_x = char_idx.x * font->char_width + (j * char_rat_w);
@@ -348,7 +348,7 @@ namespace DisplayManager
 						auto char_a = (char_argb & 0xFF000000) >> 24;
 
 						// Calculate on-screen fbo metrics
-						int char_x = x + j + (w * c_idx);
+						int char_x = x + j + (c_width * c_idx);
 						int char_y = y + i;
 
 						// Set pixel

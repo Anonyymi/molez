@@ -89,8 +89,8 @@ namespace DisplayManager
 	void set_text(
 		size_t x,
 		size_t y,
-		size_t w,
-		size_t h,
+		size_t c_width,
+		size_t c_height,
 		std::string text,
 		uint8_t r,
 		uint8_t g,

@@ -22,7 +22,7 @@ namespace InputManager
 	// Quit (clears memory)
 	void quit()
 	{
-
+		mlibc_inf("InputManager::quit().");
 	}
 
 }

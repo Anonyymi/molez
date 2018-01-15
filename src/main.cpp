@@ -49,6 +49,7 @@ int main(int argc, char * argv[])
 	AudioManager::init();
 	AudioManager::set_music_volume(64);
 	AudioManager::play_music("INGAME1.MUS");
+	AudioManager::set_audio_volume(64);
 
 	// Init TextureManager
 	TextureManager::init();

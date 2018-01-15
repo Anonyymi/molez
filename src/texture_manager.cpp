@@ -46,6 +46,8 @@ namespace TextureManager
 
 			delete t.second;
 		}
+
+		mlibc_inf("TextureManager::quit().");
 	}
 
 	// Textures (png, jpg, tga, tiff, gif, etc..)
@@ -69,7 +71,7 @@ namespace TextureManager
 				return nullptr;
 			}
 
-			mlibc_inf("TextureManager::load_texture(%s). Loaded file into memory. w: %d, h: %d, c: %d", file_path.c_str(), texture->width, texture->height, texture->components);
+			mlibc_dbg("TextureManager::load_texture(%s). Loaded file into memory. w: %d, h: %d, c: %d", file_path.c_str(), texture->width, texture->height, texture->components);
 
 			// Convert image to data to our argb format
 			texture->data = std::vector<int32_t>(texture->width * texture->height);
@@ -112,6 +114,10 @@ namespace TextureManager
 			Texture * texture = LOADED_TEXTURES[file_path];
 
 			return texture->data[(x % texture->width) + (y % texture->height) * texture->width];
+		}
+		else
+		{
+			mlibc_err("TextureManager::sample_texture(%s). Error sampling texture!", file_path.c_str());
 		}
 
 		return 0;

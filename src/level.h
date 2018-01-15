@@ -48,7 +48,7 @@ class Level
 {
 public:
 	Level(
-		LevelConfig config
+		LevelConfig & config
 	);
 	~Level();
 
@@ -60,7 +60,9 @@ public:
 	void render();
 	void update();
 private:
-	LevelConfig m_cfg;
+	LevelConfig & m_cfg;
+	int32_t m_width;
+	int32_t m_height;
 	SimplexGen m_simplex;
 	std::vector<Pixel> m_bitmap;
 	std::vector<Pixel *> m_liquid;

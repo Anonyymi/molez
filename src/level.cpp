@@ -6,11 +6,13 @@
 #include "math.h"
 
 Level::Level(
-	LevelConfig config
+	LevelConfig & config
 ) :
 	m_cfg(config),
+	m_width(m_cfg.width),
+	m_height(m_cfg.height),
 	m_simplex(m_cfg.seed),
-	m_bitmap(m_cfg.width * m_cfg.height),
+	m_bitmap(m_width * m_height),
 	m_liquid()
 {
 
@@ -23,16 +25,20 @@ Level::~Level()
 
 void Level::generate()
 {
+	// Reset dimensions (cfg dimensions can be altered)
+	m_width = m_cfg.width;
+	m_height = m_cfg.height;
+
 	// Reset liquids
 	m_liquid.clear();
 
 	// Iterate through each pixel to generate level geometry
-	for (int32_t i = 0; i < m_cfg.height; i++)
+	for (int32_t i = 0; i < m_height; i++)
 	{
-		for (int32_t j = 0; j < m_cfg.width; j++)
+		for (int32_t j = 0; j < m_width; j++)
 		{
 			// Get pixel at x,y
-			auto * pixel = &m_bitmap[j + i * m_cfg.width];
+			auto * pixel = &m_bitmap[j + i * m_width];
 
 			// Init pixel value to M_VOID
 			pixel->x = j;
@@ -74,7 +80,7 @@ void Level::generate()
 	generate_clumps(M_WATER, M_VOID, 255, m_cfg.n_water);
 	generate_clumps(M_LAVA, M_VOID, 255, m_cfg.n_lava);
 
-	mlibc_inf("Level::generate(). Level generated! Type: %u, width: %zu, height: %zu", m_cfg.type, m_cfg.width, m_cfg.height);
+	mlibc_inf("Level::generate(). Level generated! Type: %u, width: %zu, height: %zu", m_cfg.type, m_width, m_height);
 }
 
 void Level::generate_clumps(Material_t m, Material_t t, size_t amount, uint8_t chance, uint8_t n_min, uint8_t n_max)
@@ -87,11 +93,11 @@ void Level::generate_clumps(Material_t m, Material_t t, size_t amount, uint8_t c
 		{
 			// Water insert properties
 			uint8_t r = static_cast<uint8_t>(RNG_DIST8(RNG)) % 16 + 2;
-			int32_t x = RNG_DIST32(RNG) % m_cfg.width;
-			int32_t y = RNG_DIST32(RNG) % m_cfg.height;
+			int32_t x = RNG_DIST32(RNG) % m_width;
+			int32_t y = RNG_DIST32(RNG) % m_height;
 
 			// Get pixel
-			Pixel * p = &m_bitmap[x + y * m_cfg.width];
+			Pixel * p = &m_bitmap[x + y * m_width];
 
 			// Adjust radius with noise value
 			r += (p->n / 96);
@@ -190,13 +196,13 @@ void Level::alter(Material_t m, uint8_t r, int32_t x, int32_t y)
 			if (d < r)
 			{
 				// Do not allow altering memory outside level bounds
-				if (j < 0 || j >= m_cfg.width || i < 0 || i >= m_cfg.height)
+				if (j < 0 || j >= m_width || i < 0 || i >= m_height)
 				{
 					continue;
 				}
 
 				// Get the pixel
-				Pixel * pixel = &m_bitmap[j + i * m_cfg.width];
+				Pixel * pixel = &m_bitmap[j + i * m_width];
 
 				// Alter it accordingly + resample
 				pixel->m = m;
@@ -247,9 +253,9 @@ void Level::update()
 		Pixel * p_n2 = nullptr;
 
 		// Check pixel below
-		if ((p_l->y + 1) < m_cfg.height)
+		if ((p_l->y + 1) < m_height)
 		{
-			p_n = &m_bitmap[p_l->x + (p_l->y + 1) * m_cfg.width];
+			p_n = &m_bitmap[p_l->x + (p_l->y + 1) * m_width];
 
 			if (p_n->m != M_VOID)
 			{
@@ -259,9 +265,9 @@ void Level::update()
 		}
 
 		// Check pixel below+left
-		if (p_n == nullptr && (p_l->y + 1) < m_cfg.height && (p_l->x - 1) < m_cfg.width)
+		if (p_n == nullptr && (p_l->y + 1) < m_height && (p_l->x - 1) < m_width)
 		{
-			p_n = &m_bitmap[(p_l->x - 1) + (p_l->y + 1) * m_cfg.width];
+			p_n = &m_bitmap[(p_l->x - 1) + (p_l->y + 1) * m_width];
 
 			if (p_n->m != M_VOID)
 			{
@@ -271,9 +277,9 @@ void Level::update()
 		}
 
 		// Check pixel below+right
-		if (p_n == nullptr && (p_l->y + 1) < m_cfg.height && (p_l->x + 1) < m_cfg.width)
+		if (p_n == nullptr && (p_l->y + 1) < m_height && (p_l->x + 1) < m_width)
 		{
-			p_n = &m_bitmap[(p_l->x + 1) + (p_l->y + 1) * m_cfg.width];
+			p_n = &m_bitmap[(p_l->x + 1) + (p_l->y + 1) * m_width];
 
 			if (p_n->m != M_VOID)
 			{
@@ -283,9 +289,9 @@ void Level::update()
 		}
 
 		// Check pixel left
-		if (p_n == nullptr && (p_l->x - 1) < m_cfg.width)
+		if (p_n == nullptr && (p_l->x - 1) < m_width)
 		{
-			p_n = &m_bitmap[(p_l->x - 1) + p_l->y * m_cfg.width];
+			p_n = &m_bitmap[(p_l->x - 1) + p_l->y * m_width];
 
 			if (p_n->m != M_VOID)
 			{
@@ -295,9 +301,9 @@ void Level::update()
 		}
 
 		// Check pixel right
-		if (p_n == nullptr && (p_l->x + 1) < m_cfg.width)
+		if (p_n == nullptr && (p_l->x + 1) < m_width)
 		{
-			p_n = &m_bitmap[(p_l->x + 1) + p_l->y * m_cfg.width];
+			p_n = &m_bitmap[(p_l->x + 1) + p_l->y * m_width];
 
 			if (p_n->m != M_VOID)
 			{

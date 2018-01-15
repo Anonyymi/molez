@@ -1,4 +1,5 @@
 #include <iostream>
+#include <functional>
 #include <ctime>
 #include <SDL2/SDL.h>
 #include "3rdparty/mlibc_log.h"
@@ -48,13 +49,13 @@ int main(int argc, char * argv[])
 	// Init AudioManager
 	AudioManager::init();
 	AudioManager::set_music_volume(64);
-	AudioManager::play_music("INGAME1.MUS");
+	AudioManager::play_music("MENU.MUS");
 	AudioManager::set_audio_volume(64);
 
 	// Init TextureManager
 	TextureManager::init();
 
-	// Test level generation
+	// Init Level
 	LevelConfig level_cfg;
 	level_cfg.seed = 12345;
 	level_cfg.type = L_EARTH;
@@ -67,18 +68,35 @@ int main(int argc, char * argv[])
 	Level level(level_cfg);
 	level.generate();
 
-	// Test menu system
+	bool running = true;
+
+	// Init Menu(s)
+	Menu menu_g_cfg("Game CFG");
+	menu_g_cfg.add_item(new MenuItem("MUSIC VOL", MI_NUMERIC, nullptr, MIV_EMPTY));
+	menu_g_cfg.add_item(new MenuItem("AUDIO VOL", MI_NUMERIC, nullptr, MIV_EMPTY));
+
+	Menu menu_l_cfg("Level CFG");
+	menu_l_cfg.add_item(new MenuItem("SEED", MI_NUMERIC, &level_cfg.seed, MIV_UINT32));
+	menu_l_cfg.add_item(new MenuItem("TYPE", MI_NUMERIC, &level_cfg.type, MIV_UINT8));
+	menu_l_cfg.add_item(new MenuItem("WIDTH", MI_NUMERIC, &level_cfg.width, MIV_INT32));
+	menu_l_cfg.add_item(new MenuItem("HEIGHT", MI_NUMERIC, &level_cfg.height, MIV_INT32));
+	menu_l_cfg.add_item(new MenuItem("NOISE SCALE", MI_NUMERIC, &level_cfg.n_scale, MIV_FLOAT));
+	menu_l_cfg.add_item(new MenuItem("WATER", MI_NUMERIC, &level_cfg.n_water, MIV_UINT8));
+	menu_l_cfg.add_item(new MenuItem("LAVA", MI_NUMERIC, &level_cfg.n_lava, MIV_UINT8));
+
 	Menu menu("Molez");
-	menu.add_item(new MenuItem("NEW GAME", MI_EMPTY, nullptr, nullptr));
-	menu.add_item(new MenuItem("REGEN LEVEL", MI_EMPTY, nullptr, nullptr));
-	menu.add_item(new MenuItem("GAME INFO", MI_EMPTY, nullptr, nullptr));
-	menu.add_item(new MenuItem("EXIT", MI_EMPTY, nullptr, nullptr));
+	menu.add_item(new MenuItem("NEW GAME", MI_EMPTY, nullptr, MIV_EMPTY));
+	std::function<void()> menu_regen = [&level]() { level.regenerate((uint32_t)time(NULL)); };
+	menu.add_item(new MenuItem("REGEN LEVEL", MI_BUTTON, nullptr, MIV_EMPTY, menu_regen));
+	menu.add_item(new MenuItem("GAME CONFIG", MI_SUBMENU, &menu_g_cfg, MIV_EMPTY));
+	menu.add_item(new MenuItem("LEVEL CONFIG", MI_SUBMENU, &menu_l_cfg, MIV_EMPTY));
+	std::function<void()> menu_exit = [&running]() { running = false; };
+	menu.add_item(new MenuItem("EXIT", MI_BUTTON, nullptr, MIV_EMPTY, menu_exit));
 
 	// Center main camera
 	DisplayManager::ACTIVE_CAMERA->x += level_cfg.width / 2;
 	DisplayManager::ACTIVE_CAMERA->y -= level_cfg.height / 2;
 
-	bool running = true;
 	while (running)
 	{
 		// Level alter pixels
@@ -112,18 +130,6 @@ int main(int argc, char * argv[])
 		else if (InputManager::KBOARD[SDLK_a])
 		{
 			DisplayManager::ACTIVE_CAMERA->x -= DisplayManager::ACTIVE_CAMERA->speed;
-		}
-
-		// Program exit
-		if (InputManager::KBOARD[SDLK_ESCAPE])
-		{
-			running = false;
-		}
-
-		// Level reset
-		if (InputManager::KBOARD[SDLK_r])
-		{
-			level.regenerate((uint32_t)time(NULL));
 		}
 
 		// Clear screen fbo

@@ -260,7 +260,7 @@ namespace DisplayManager
 			}
 
 			// Encode new ARGB component values back hex
-			auto argb = ((a << 255) | (r << 16) | (g << 8) | b);
+			auto argb = ((a << 24) | (r << 16) | (g << 8) | b);
 
 			ACTIVE_WINDOW->framebuffer[x + y * ACTIVE_WINDOW->width] = argb;
 		}

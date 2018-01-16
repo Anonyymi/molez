@@ -8,6 +8,7 @@
 #include "texture_manager.h"
 #include "game_state.h"
 #include "menu_state.h"
+#include "level.h"
 
 mlibc_log_logger * mlibc_log_instance = NULL;
 
@@ -60,8 +61,19 @@ Game::Game(
 	// Init TextureManager
 	TextureManager::init();
 
+	// Init level
+	LevelConfig level_cfg;
+	level_cfg.seed = 12345;
+	level_cfg.type = L_EARTH;
+	level_cfg.width = DisplayManager::ACTIVE_WINDOW->width;
+	level_cfg.height = DisplayManager::ACTIVE_WINDOW->height;
+	level_cfg.n_scale = 0.005f;
+	level_cfg.n_water = 40;
+	level_cfg.n_lava = 12;
+	Level * level = new Level(level_cfg);
+
 	// Init GameState to MenuState
-	setGameState(new MenuState(this));
+	setGameState(new MenuState(this, level));
 }
 
 Game::~Game()
@@ -100,6 +112,20 @@ GameRunState_t Game::run()
 	}
 
 	return m_run_state;
+}
+
+void Game::stop()
+{
+	// If m_run_state == GRS_STOPPED, don't continue
+	if (m_run_state == GRS_STOPPED)
+	{
+		mlibc_err("Game::stop() error! m_run_state is already GRS_STOPPED, please make sure the game is started first!");
+
+		m_run_state = GRS_ERROR;
+		return;
+	}
+
+	m_run_state = GRS_STOPPED;
 }
 
 void Game::update(float dt, float t)

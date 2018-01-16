@@ -1,14 +1,20 @@
 #include "menu_state.h"
+#include <functional>
+#include <ctime>
+#include "game.h"
+#include "level.h"
 #include "audio_manager.h"
 #include "display_manager.h"
 
 MenuState::MenuState(
-	Game * const game
+	Game * const game,
+	Level * const level
 ) :
 	GameState(game),
 	m_menu("MOLEZ"),
 	m_menu_game_cfg("GAME CFG"),
-	m_menu_level_cfg("LEVEL CFG")
+	m_menu_level_cfg("LEVEL CFG"),
+	m_level(level)
 {
 	// Define game cfg menu
 	m_menu_game_cfg.add_item(new MenuItem("WIN WIDTH", MI_EMPTY, nullptr, MIV_EMPTY));
@@ -35,9 +41,12 @@ MenuState::MenuState(
 	// Define game main menu
 	m_menu.add_item(new MenuItem("NEW GAME", MI_EMPTY, nullptr, MIV_EMPTY));
 	m_menu.add_item(new MenuItem("SERVER BROWSER", MI_EMPTY, nullptr, MIV_EMPTY));
+	std::function<void()> action_regen = [this]() { m_level->regenerate((uint32_t)time(NULL)); };
+	m_menu.add_item(new MenuItem("REGEN LEVEL", MI_BUTTON, nullptr, MIV_EMPTY, action_regen));
 	m_menu.add_item(new MenuItem("GAME CONFIG", MI_SUBMENU, &m_menu_game_cfg, MIV_EMPTY));
 	m_menu.add_item(new MenuItem("LEVEL CONFIG", MI_SUBMENU, &m_menu_level_cfg, MIV_EMPTY));
-	m_menu.add_item(new MenuItem("EXIT TO OS", MI_EMPTY, nullptr, MIV_EMPTY));
+	std::function<void()> action_exit = [this]() { m_game->stop(); };
+	m_menu.add_item(new MenuItem("EXIT TO OS", MI_BUTTON, nullptr, MIV_EMPTY, action_exit));
 
 	// Switch to menu music
 	AudioManager::play_music("MENU.MUS");
@@ -46,14 +55,6 @@ MenuState::MenuState(
 	DisplayManager::Window * window = DisplayManager::ACTIVE_WINDOW;
 	DisplayManager::load_camera("menu", window->width / 2, -window->height / 2);
 	DisplayManager::activate_camera("menu");
-
-	//m_menu.add_item(new MenuItem("NEW GAME", MI_EMPTY, nullptr, MIV_EMPTY));
-	//std::function<void()> menu_regen = [&level]() { level.regenerate((uint32_t)time(NULL)); };
-	//m_menu.add_item(new MenuItem("REGEN LEVEL", MI_BUTTON, nullptr, MIV_EMPTY, menu_regen));
-	//m_menu.add_item(new MenuItem("GAME CONFIG", MI_SUBMENU, &menu_g_cfg, MIV_EMPTY));
-	//m_menu.add_item(new MenuItem("LEVEL CONFIG", MI_SUBMENU, &menu_l_cfg, MIV_EMPTY));
-	//std::function<void()> menu_exit = [&running]() { running = false; };
-	//m_menu.add_item(new MenuItem("EXIT", MI_BUTTON, nullptr, MIV_EMPTY, menu_exit));
 }
 
 MenuState::~MenuState()
@@ -63,10 +64,20 @@ MenuState::~MenuState()
 
 void MenuState::update(float dt, float t)
 {
+	// Update level
+	if (m_level)
+		m_level->update();
+
+	// Update menu
 	m_menu.update();
 }
 
 void MenuState::render()
 {
+	// Render level
+	if (m_level)
+		m_level->render();
+
+	// Render menu
 	m_menu.render();
 }

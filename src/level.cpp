@@ -6,7 +6,7 @@
 #include "math.h"
 
 Level::Level(
-	LevelConfig & config
+	LevelConfig config
 ) :
 	m_cfg(config),
 	m_width(m_cfg.width),
@@ -28,6 +28,10 @@ void Level::generate()
 	// Reset dimensions (cfg dimensions can be altered)
 	m_width = m_cfg.width;
 	m_height = m_cfg.height;
+
+	// Reset + resize bitmap
+	m_bitmap.clear();
+	m_bitmap.resize(m_width * m_height);
 
 	// Reset liquids
 	m_liquid.clear();

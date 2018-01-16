@@ -11,8 +11,8 @@ public:
 
 	virtual void update(float dt, float t) = 0;
 	virtual void render() = 0;
-private:
-	Game * const m_game;
+protected:
+	Game * m_game;
 };
 
 #endif // GAME_STATE_H

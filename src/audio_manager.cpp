@@ -34,7 +34,7 @@ namespace AudioManager
 		load_music("INGAME1.MUS");
 		load_music("INGAME2.MUS");
 
-		// Pre-laod audio
+		// Pre-load audio
 		load_audio("MOVEUP.SFX");
 		load_audio("MOVEDOWN.SFX");
 		load_audio("SELECT.SFX");

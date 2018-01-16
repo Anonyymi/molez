@@ -8,6 +8,47 @@
 
 #define MAX_VISIBLE_ITEMS 7
 
+MenuItem::MenuItem(
+	const std::string & text,
+	MenuItem_t type,
+	void * value,
+	MenuItemValue_t datatype,
+	std::function<void()> action
+) :
+	m_text(text),
+	m_type(type),
+	m_value(value),
+	m_datatype(datatype),
+	m_action(action)
+{
+	mlibc_inf("MenuItem::MenuItem(%s).", m_text.c_str());
+}
+
+const std::string & MenuItem::getText() const
+{
+	return m_text;
+}
+
+MenuItem_t MenuItem::getType() const
+{
+	return m_type;
+}
+
+void * const MenuItem::getValue() const
+{
+	return m_value;
+}
+
+MenuItemValue_t MenuItem::getDataType() const
+{
+	return m_datatype;
+}
+
+std::function<void()> MenuItem::getAction() const
+{
+	return m_action;
+}
+
 Menu::Menu(
 	const std::string & title
 ) :
@@ -22,6 +63,15 @@ Menu::Menu(
 
 Menu::~Menu()
 {
+	// Delete child(s)
+	delete m_child;
+
+	// Delete items
+	for (MenuItem * item : m_items)
+	{
+		delete item;
+	}
+
 	mlibc_inf("Menu::~Menu(%s).", m_title.c_str());
 }
 
@@ -108,25 +158,25 @@ void Menu::render()
 
 		// Get value as string
 		std::string val_str;
-		switch (item->type)
+		switch (item->getType())
 		{
 			case MI_NUMERIC:
 			{
-				switch (item->datatype)
+				switch (item->getDataType())
 				{
-					case MIV_BOOL: val_str = std::to_string(*reinterpret_cast<bool *>(item->value)); break;
-					case MIV_UINT8: val_str = std::to_string(*reinterpret_cast<uint8_t *>(item->value)); break;
-					case MIV_UINT32: val_str = std::to_string(*reinterpret_cast<uint32_t *>(item->value)); break;
-					case MIV_INT8: val_str = std::to_string(*reinterpret_cast<int8_t *>(item->value)); break;
-					case MIV_INT32: val_str = std::to_string(*reinterpret_cast<int32_t *>(item->value)); break;
-					case MIV_FLOAT: val_str = std::to_string(*reinterpret_cast<float *>(item->value)); break;
-					case MIV_DOUBLE: val_str = std::to_string(*reinterpret_cast<double *>(item->value)); break;
+					case MIV_BOOL: val_str = std::to_string(*reinterpret_cast<bool *>(item->getValue())); break;
+					case MIV_UINT8: val_str = std::to_string(*reinterpret_cast<uint8_t *>(item->getValue())); break;
+					case MIV_UINT32: val_str = std::to_string(*reinterpret_cast<uint32_t *>(item->getValue())); break;
+					case MIV_INT8: val_str = std::to_string(*reinterpret_cast<int8_t *>(item->getValue())); break;
+					case MIV_INT32: val_str = std::to_string(*reinterpret_cast<int32_t *>(item->getValue())); break;
+					case MIV_FLOAT: val_str = std::to_string(*reinterpret_cast<float *>(item->getValue())); break;
+					case MIV_DOUBLE: val_str = std::to_string(*reinterpret_cast<double *>(item->getValue())); break;
 				}
 			} break;
 		}
 
 		// Render text + value
-		std::string text = (val_str.size() == 0) ? item->text : item->text + ":" + val_str;
+		std::string text = (val_str.size() == 0) ? item->getText() : item->getText() + ":" + val_str;
 		DisplayManager::set_text(mif_x, mif_y, mif_w, mif_h, text, 255, 255, 255, font);
 	}
 }
@@ -178,44 +228,44 @@ void Menu::update()
 		MenuItem * item = m_items[m_active_item];
 
 		// Handle the value change based on item type
-		switch (item->type)
+		switch (item->getType())
 		{
 			case MI_NUMERIC:
 			{
-				switch (item->datatype)
+				switch (item->getDataType())
 				{
 					case MIV_BOOL:
 					{
-						*reinterpret_cast<bool *>(item->value) = (key == SDLK_LEFT) ? false : true;
+						*reinterpret_cast<bool *>(item->getValue()) = (key == SDLK_LEFT) ? false : true;
 					} break;
 					case MIV_UINT8:
 					{
-						auto value = reinterpret_cast<uint8_t *>(item->value);
+						auto value = reinterpret_cast<uint8_t *>(item->getValue());
 						*value = (key == SDLK_LEFT) ? *value - 1 : *value + 1;
 					} break;
 					case MIV_UINT32:
 					{
-						auto value = reinterpret_cast<uint32_t *>(item->value);
+						auto value = reinterpret_cast<uint32_t *>(item->getValue());
 						*value = (key == SDLK_LEFT) ? *value - 1 : *value + 1;
 					} break;
 					case MIV_INT8:
 					{
-						auto value = reinterpret_cast<int8_t *>(item->value);
+						auto value = reinterpret_cast<int8_t *>(item->getValue());
 						*value = (key == SDLK_LEFT) ? *value - 1 : *value + 1;
 					} break;
 					case MIV_INT32:
 					{
-						auto value = reinterpret_cast<int32_t *>(item->value);
+						auto value = reinterpret_cast<int32_t *>(item->getValue());
 						*value = (key == SDLK_LEFT) ? *value - 1 : *value + 1;
 					} break;
 					case MIV_FLOAT:
 					{
-						auto value = reinterpret_cast<float *>(item->value);
+						auto value = reinterpret_cast<float *>(item->getValue());
 						*value = (key == SDLK_LEFT) ? *value - 0.1f : *value + 0.1f;
 					} break;
 					case MIV_DOUBLE:
 					{
-						auto value = reinterpret_cast<double *>(item->value);
+						auto value = reinterpret_cast<double *>(item->getValue());
 						*value = (key == SDLK_LEFT) ? *value - 0.1f : *value + 0.1f;
 					} break;
 				}
@@ -233,18 +283,18 @@ void Menu::update()
 		MenuItem * item = m_items[m_active_item];
 
 		// Handle the selection based on item type
-		switch (item->type)
+		switch (item->getType())
 		{
 			case MI_BUTTON:
 			{
-				if (item->action)
+				if (item->getAction())
 				{
-					item->action();
+					item->getAction()();
 				}
 			} break;
 			case MI_SUBMENU:
 			{
-				m_child = static_cast<Menu *>(item->value);
+				m_child = static_cast<Menu *>(item->getValue());
 				m_child->set_parent(this);
 			} break;
 		}

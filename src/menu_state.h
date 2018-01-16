@@ -4,11 +4,14 @@
 #include "game_state.h"
 #include "menu.h"
 
+class Level;
+
 class MenuState : public GameState
 {
 public:
 	MenuState(
-		Game * const game
+		Game * const game,
+		Level * const level
 	);
 	virtual ~MenuState() override;
 
@@ -18,6 +21,7 @@ private:
 	Menu m_menu;
 	Menu m_menu_game_cfg;
 	Menu m_menu_level_cfg;
+	Level * m_level;
 };
 
 #endif // MENU_STATE_H

@@ -62,7 +62,7 @@ namespace DisplayManager
 				SDL_WINDOWPOS_CENTERED,
 				width * scale,
 				height * scale,
-				SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | (fullscreen) ? SDL_WINDOW_FULLSCREEN : 0
+				SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | ((fullscreen) ? SDL_WINDOW_FULLSCREEN : 0)
 			);
 
 			if (window->handle == NULL)

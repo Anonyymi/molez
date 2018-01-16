@@ -10,8 +10,8 @@ int main(int argc, char * argv[])
 	{
 		// Init game cfg
 		GameConfig cfg;
-		cfg.win_width = 1920;
-		cfg.win_height = 1080;
+		cfg.win_width = 640;
+		cfg.win_height = 467;
 		cfg.win_scale = 1;
 		cfg.win_fullscreen = true;
 		cfg.gfx_framerate = 60.0f;

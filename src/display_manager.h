@@ -50,7 +50,7 @@ namespace DisplayManager
 	Window * load_window(
 		const std::string & title,
 		int width = 640,
-		int height = 480,
+		int height = 467,
 		int scale = 1,
 		bool fullscreen = false
 	);

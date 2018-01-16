@@ -1,0 +1,19 @@
+{
+	"window": {
+    "width": 640,
+    "height": 467,
+    "scale": 1,
+    "fullscreen": true
+  },
+  "graphics": {
+    "framerate": 60.0,
+  },
+  "audio": {
+    "music_vol": 64,
+    "audio_vol": 40
+  },
+  "physics": {
+    "tickrate": 100.0,
+    "timestep": 1e-2
+  }
+}

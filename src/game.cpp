@@ -73,7 +73,7 @@ Game::Game(
 	Level * level = new Level(level_cfg);
 
 	// Init GameState to MenuState
-	setGameState(new MenuState(this, level));
+	setState(new MenuState(this, level));
 }
 
 Game::~Game()
@@ -222,7 +222,17 @@ void Game::input()
 	}
 }
 
-void Game::setGameState(GameState * state)
+void Game::setConfig(GameConfig cfg)
+{
+	m_cfg = cfg;
+}
+
+GameConfig & Game::getConfig()
+{
+	return m_cfg;
+}
+
+void Game::setState(GameState * state)
 {
 	// Save previous state to temp var
 	GameState * temp = m_state;
@@ -234,7 +244,7 @@ void Game::setGameState(GameState * state)
 	delete temp;
 }
 
-GameState * const Game::getGameState()
+GameState * const Game::getState()
 {
 	return m_state;
 }

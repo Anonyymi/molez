@@ -348,3 +348,13 @@ void Level::update()
 		}
 	}
 }
+
+void Level::set_config(LevelConfig cfg)
+{
+	m_cfg = cfg;
+}
+
+LevelConfig & Level::get_config()
+{
+	return m_cfg;
+}

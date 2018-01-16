@@ -44,8 +44,10 @@ public:
 	void render();
 	void input();
 
-	void setGameState(GameState * state);
-	GameState * const getGameState();
+	void setConfig(GameConfig cfg);
+	GameConfig & getConfig();
+	void setState(GameState * state);
+	GameState * const getState();
 private:
 	GameConfig & m_cfg;
 	GameRunState_t m_run_state;

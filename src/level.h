@@ -59,6 +59,9 @@ public:
 	void alter(Material_t m, uint8_t r, int32_t x, int32_t y);
 	void render();
 	void update();
+
+	void set_config(LevelConfig cfg);
+	LevelConfig & get_config();
 private:
 	LevelConfig m_cfg;
 	int32_t m_width;

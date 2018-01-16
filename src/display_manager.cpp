@@ -43,7 +43,8 @@ namespace DisplayManager
 		const std::string & title,
 		int width,
 		int height,
-		int scale
+		int scale,
+		bool fullscreen
 	)
 	{
 		if (LOADED_WINDOWS.count(title) == 0)
@@ -61,7 +62,7 @@ namespace DisplayManager
 				SDL_WINDOWPOS_CENTERED,
 				width * scale,
 				height * scale,
-				SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
+				SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | (fullscreen) ? SDL_WINDOW_FULLSCREEN : 0
 			);
 
 			if (window->handle == NULL)

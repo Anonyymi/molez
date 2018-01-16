@@ -46,7 +46,8 @@ Game::Game(
 		"molez",
 		m_cfg.win_width,
 		m_cfg.win_height,
-		m_cfg.win_scale
+		m_cfg.win_scale,
+		m_cfg.win_fullscreen
 	);
 	DisplayManager::activate_window("molez");
 	DisplayManager::clear(0x00000000);

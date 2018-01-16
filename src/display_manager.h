@@ -51,7 +51,8 @@ namespace DisplayManager
 		const std::string & title,
 		int width = 640,
 		int height = 480,
-		int scale = 1
+		int scale = 1,
+		bool fullscreen = false
 	);
 	void activate_window(const std::string & title);
 

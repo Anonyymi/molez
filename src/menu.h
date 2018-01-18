@@ -26,27 +26,49 @@ enum MenuItemValue_t
 	MIV_DOUBLE = 7
 };
 
+struct MenuItemVal
+{
+	MenuItemValue_t type;
+	void * value;
+	float incValue;
+	float minValue;
+	float maxValue;
+
+	MenuItemVal(
+		MenuItemValue_t type = MIV_EMPTY,
+		void * value = nullptr,
+		float incValue = 0.0f,
+		float minValue = 0.0f,
+		float maxValue = 0.0f
+	) :
+		type(type),
+		value(value),
+		incValue(incValue),
+		minValue(minValue),
+		maxValue(maxValue)
+	{
+
+	}
+};
+
 class MenuItem
 {
 public:
 	MenuItem(
 		const std::string & text,
 		MenuItem_t type,
-		void * value = nullptr,
-		MenuItemValue_t datatype = MIV_EMPTY,
+		MenuItemVal value,
 		std::function<void()> action = std::function<void()>()
 	);
 
 	const std::string & getText() const;
 	MenuItem_t getType() const;
-	void * const getValue() const;
-	MenuItemValue_t getDataType() const;
+	MenuItemVal & getValue();
 	std::function<void()> getAction() const;
 private:
 	std::string m_text;				// visible text
 	MenuItem_t m_type;				// item type (button, submenu, numeric, etc...)
-	void * m_value;					// item value
-	MenuItemValue_t m_datatype;		// item value data type (uint32_t, uint8_t, etc...)
+	MenuItemVal m_value;			// item value
 	std::function<void()> m_action;	// item action (function pointer)
 };
 

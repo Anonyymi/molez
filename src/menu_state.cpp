@@ -17,28 +17,28 @@ MenuState::MenuState(
 	m_level(level)
 {
 	// Define game cfg menu
-	m_menu_game_cfg.add_item(new MenuItem("WIN WIDTH", MI_NUMERIC, &m_game->getConfig().win_width, MIV_INT32));
-	m_menu_game_cfg.add_item(new MenuItem("WIN HEIGHT", MI_NUMERIC, &m_game->getConfig().win_height, MIV_INT32));
-	m_menu_game_cfg.add_item(new MenuItem("WIN SCALE", MI_NUMERIC, &m_game->getConfig().win_scale, MIV_INT32));
-	m_menu_game_cfg.add_item(new MenuItem("FULLSCREEN", MI_NUMERIC, &m_game->getConfig().win_fullscreen, MIV_BOOL));
-	m_menu_game_cfg.add_item(new MenuItem("GFX FRAMERATE", MI_NUMERIC, &m_game->getConfig().gfx_framerate, MIV_FLOAT));
-	m_menu_game_cfg.add_item(new MenuItem("AUDIO VOL", MI_NUMERIC, &m_game->getConfig().sfx_audio_vol, MIV_INT32));
-	m_menu_game_cfg.add_item(new MenuItem("MUSIC VOL", MI_NUMERIC, &m_game->getConfig().sfx_music_vol, MIV_INT32));
-	m_menu_game_cfg.add_item(new MenuItem("PHYS TICKRATE", MI_NUMERIC, &m_game->getConfig().phy_tickrate, MIV_FLOAT));
-	m_menu_game_cfg.add_item(new MenuItem("PHYS TIMESTEP", MI_NUMERIC, &m_game->getConfig().phy_timestep, MIV_FLOAT));
+	m_menu_game_cfg.add_item(new MenuItem("WIN WIDTH", MI_NUMERIC, MenuItemVal(MIV_INT32, &m_game->getConfig().win_width, 1)));
+	m_menu_game_cfg.add_item(new MenuItem("WIN HEIGHT", MI_NUMERIC, MenuItemVal(MIV_INT32, &m_game->getConfig().win_height, 1)));
+	m_menu_game_cfg.add_item(new MenuItem("WIN SCALE", MI_NUMERIC, MenuItemVal(MIV_INT32, &m_game->getConfig().win_scale, 1, 1, 5)));
+	m_menu_game_cfg.add_item(new MenuItem("FULLSCREEN", MI_NUMERIC, MenuItemVal(MIV_BOOL, &m_game->getConfig().win_fullscreen)));
+	m_menu_game_cfg.add_item(new MenuItem("GFX FRAMERATE", MI_NUMERIC, MenuItemVal(MIV_FLOAT, &m_game->getConfig().gfx_framerate, 0.1f)));
+	m_menu_game_cfg.add_item(new MenuItem("AUDIO VOL", MI_NUMERIC, MenuItemVal(MIV_INT32, &m_game->getConfig().sfx_audio_vol, 4, 0, 128)));
+	m_menu_game_cfg.add_item(new MenuItem("MUSIC VOL", MI_NUMERIC, MenuItemVal(MIV_INT32, &m_game->getConfig().sfx_music_vol, 4, 0, 128)));
+	m_menu_game_cfg.add_item(new MenuItem("PHYS TICKRATE", MI_NUMERIC, MenuItemVal(MIV_FLOAT, &m_game->getConfig().phy_tickrate, 0.1f)));
+	m_menu_game_cfg.add_item(new MenuItem("PHYS TIMESTEP", MI_NUMERIC, MenuItemVal(MIV_FLOAT, &m_game->getConfig().phy_timestep, 0.1f)));
 
 	// Define level cfg menu
-	m_menu_level_cfg.add_item(new MenuItem("SEED", MI_NUMERIC, &m_level->get_config().seed, MIV_UINT32));
-	m_menu_level_cfg.add_item(new MenuItem("TYPE", MI_NUMERIC, &m_level->get_config().type, MIV_UINT8));
-	m_menu_level_cfg.add_item(new MenuItem("WIDTH", MI_NUMERIC, &m_level->get_config().width, MIV_INT32));
-	m_menu_level_cfg.add_item(new MenuItem("HEIGHT", MI_NUMERIC, &m_level->get_config().height, MIV_INT32));
-	m_menu_level_cfg.add_item(new MenuItem("NOISE", MI_NUMERIC, &m_level->get_config().n_scale, MIV_FLOAT));
-	m_menu_level_cfg.add_item(new MenuItem("WATER", MI_NUMERIC, &m_level->get_config().n_water, MIV_UINT8));
-	m_menu_level_cfg.add_item(new MenuItem("LAVA", MI_NUMERIC, &m_level->get_config().n_lava, MIV_UINT8));
+	m_menu_level_cfg.add_item(new MenuItem("SEED", MI_NUMERIC, MenuItemVal(MIV_UINT32, &m_level->get_config().seed, 1)));
+	m_menu_level_cfg.add_item(new MenuItem("TYPE", MI_NUMERIC, MenuItemVal(MIV_UINT8, &m_level->get_config().type, 1, 0, 255)));
+	m_menu_level_cfg.add_item(new MenuItem("WIDTH", MI_NUMERIC, MenuItemVal(MIV_INT32, &m_level->get_config().width, 8)));
+	m_menu_level_cfg.add_item(new MenuItem("HEIGHT", MI_NUMERIC, MenuItemVal(MIV_INT32, &m_level->get_config().height, 8)));
+	m_menu_level_cfg.add_item(new MenuItem("NOISE", MI_NUMERIC, MenuItemVal(MIV_FLOAT, &m_level->get_config().n_scale, 0.001f)));
+	m_menu_level_cfg.add_item(new MenuItem("WATER", MI_NUMERIC, MenuItemVal(MIV_UINT8, &m_level->get_config().n_water, 1)));
+	m_menu_level_cfg.add_item(new MenuItem("LAVA", MI_NUMERIC, MenuItemVal(MIV_UINT8, &m_level->get_config().n_lava, 1)));
 
 	// Define game main menu
-	m_menu.add_item(new MenuItem("NEW GAME", MI_EMPTY, nullptr, MIV_EMPTY));
-	m_menu.add_item(new MenuItem("SERVER BROWSER", MI_EMPTY, nullptr, MIV_EMPTY));
+	m_menu.add_item(new MenuItem("NEW GAME", MI_EMPTY, MenuItemVal()));
+	m_menu.add_item(new MenuItem("SERVER BROWSER", MI_EMPTY, MenuItemVal()));
 	std::function<void()> action_regen = [this]() {
 		// Re-generate level
 		m_level->regenerate((uint32_t)time(NULL));
@@ -57,14 +57,14 @@ MenuState::MenuState(
 		l_camera->x = l_camera_x;
 		l_camera->y = l_camera_y;
 	};
-	m_menu.add_item(new MenuItem("REGEN LEVEL", MI_BUTTON, nullptr, MIV_EMPTY, action_regen));
-	m_menu.add_item(new MenuItem("GAME CONFIG", MI_SUBMENU, &m_menu_game_cfg, MIV_EMPTY));
-	m_menu.add_item(new MenuItem("LEVEL CONFIG", MI_SUBMENU, &m_menu_level_cfg, MIV_EMPTY));
+	m_menu.add_item(new MenuItem("REGEN LEVEL", MI_BUTTON, MenuItemVal(), action_regen));
+	m_menu.add_item(new MenuItem("GAME CONFIG", MI_SUBMENU, MenuItemVal(MIV_EMPTY, &m_menu_game_cfg)));
+	m_menu.add_item(new MenuItem("LEVEL CONFIG", MI_SUBMENU, MenuItemVal(MIV_EMPTY, &m_menu_level_cfg)));
 	std::function<void()> action_exit = [this]() { m_game->stop(); };
-	m_menu.add_item(new MenuItem("EXIT TO OS", MI_BUTTON, nullptr, MIV_EMPTY, action_exit));
+	m_menu.add_item(new MenuItem("EXIT TO OS", MI_BUTTON, MenuItemVal(), action_exit));
 
 	// Switch to menu music
-	//AudioManager::play_music("MENU.MUS");
+	AudioManager::play_music("MENU.MUS");
 
 	// Init level, init camera
 	action_regen();

@@ -27,7 +27,18 @@ struct GameConfig
 	int sfx_audio_vol;
 	// physics
 	float phy_tickrate;
-	float phy_timestep;
+};
+
+struct PhysicsState
+{
+	float t;			// time in seconds
+	float dt;			// timestep in seconds
+	float t_curr;		// current hires_time_in_seconds()
+	float t_acc;		// accumulator for time that has to be simulated
+	float s_curr;		// current physics state
+	float s_prev;		// previous physics state
+	float s_lerp;		// linearly interpolated state
+	float alpha;		// value for state interpolation, [0..1]
 };
 
 class Game
@@ -40,18 +51,21 @@ public:
 
 	GameRunState_t run();
 	void stop();
-	void update(float dt, float t);
-	void render();
+	void update(float state, float t, float dt);
+	void render(float state);
 	void input();
 
 	void setConfig(GameConfig cfg);
 	GameConfig & getConfig();
 	void setState(GameState * state);
 	GameState * const getState();
+	PhysicsState getPhysState() const;
+	float getTimeInSec() const;
 private:
 	GameConfig & m_cfg;
 	GameRunState_t m_run_state;
 	GameState * m_state;
+	PhysicsState m_phys;
 };
 
 #endif // GAME_H

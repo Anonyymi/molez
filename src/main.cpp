@@ -32,10 +32,9 @@ int main(int argc, char * argv[])
 		cfg.win_scale = cfg_json["window"]["scale"].get<int>();
 		cfg.win_fullscreen = cfg_json["window"]["fullscreen"].get<bool>();
 		cfg.gfx_framerate = cfg_json["graphics"]["framerate"].get<float>();
-		cfg.sfx_music_vol = cfg_json["audio"]["music_vol"].get<int>();;
-		cfg.sfx_audio_vol = cfg_json["audio"]["audio_vol"].get<int>();;
-		cfg.phy_tickrate = cfg_json["physics"]["tickrate"].get<float>();;
-		cfg.phy_timestep = cfg_json["physics"]["timestep"].get<float>();;
+		cfg.sfx_music_vol = cfg_json["audio"]["music_vol"].get<int>();
+		cfg.sfx_audio_vol = cfg_json["audio"]["audio_vol"].get<int>();
+		cfg.phy_tickrate = cfg_json["physics"]["tickrate"].get<float>();
 
 		// Create game
 		Game game(

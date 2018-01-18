@@ -57,8 +57,8 @@ public:
 	void regenerate(uint32_t seed);
 	void sample_pixel(Pixel * pixel, int32_t offset_x = 0, int32_t offset_y = 0);
 	void alter(Material_t m, uint8_t r, int32_t x, int32_t y);
-	void render();
-	void update();
+	void update(float state, float t, float dt);
+	void render(float state);
 
 	void set_config(LevelConfig cfg);
 	LevelConfig & get_config();

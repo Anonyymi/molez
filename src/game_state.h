@@ -9,8 +9,8 @@ public:
 	GameState(Game * const game);
 	virtual ~GameState();
 
-	virtual void update(float dt, float t) = 0;
-	virtual void render() = 0;
+	virtual void update(float state, float t, float dt) = 0;
+	virtual void render(float state) = 0;
 protected:
 	Game * m_game;
 };

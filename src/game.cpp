@@ -17,7 +17,8 @@ Game::Game(
 ) :
 	m_cfg(cfg),
 	m_run_state(GRS_STOPPED),
-	m_state(nullptr)
+	m_state(nullptr),
+	m_phys()
 {
 	int return_code;
 
@@ -91,6 +92,8 @@ Game::~Game()
 	mlibc_log_free();
 }
 
+// Fix your timestep!
+// Article; https://gafferongames.com/post/fix_your_timestep/
 GameRunState_t Game::run()
 {
 	// If m_run_state == GRS_RUNNING, don't continue
@@ -101,15 +104,43 @@ GameRunState_t Game::run()
 		m_run_state = GRS_ERROR;
 		return m_run_state;
 	}
-
-	// Game loop
-	// TODO; Fixed timestep physics!
 	m_run_state = GRS_RUNNING;
+
+	// Fixed timestep physics prepare
+	m_phys.t = 0.0f;
+	m_phys.dt = 1.0f / m_cfg.phy_tickrate;
+	m_phys.t_curr = getTimeInSec();				// hires_time_in_seconds()
+	m_phys.t_acc = 0.0f;						// accumulator
+	m_phys.s_prev = 0.0f;						// previous state
+	m_phys.s_curr = 0.0f;						// current state
+
+	// Run the game and physics
 	while (m_run_state == GRS_RUNNING)
 	{
-		update(m_cfg.phy_timestep, 1.0f);
-		render();
-		input();
+		// Fixed timestep, frame prepare
+		float t_new = getTimeInSec();			// newTime
+		float t_frame = t_new - m_phys.t_curr;	// frame time in seconds
+		if (t_frame > 0.25f)
+			t_frame = 0.25f;
+		m_phys.t_curr = t_new;
+
+		m_phys.t_acc += t_frame;
+
+		// Fixed timestep, simulate until acc decreases to dt
+		while (m_phys.t_acc >= m_phys.dt)
+		{
+			m_phys.s_prev = m_phys.s_curr;
+			update(m_phys.s_curr, m_phys.t, m_phys.dt);
+			m_phys.t += m_phys.dt;
+			m_phys.t_acc -= m_phys.dt;
+		}
+
+		// Fixed timestep, frame end
+		m_phys.alpha = m_phys.t_acc / m_phys.dt;	// interpolation value for state between states
+		m_phys.s_lerp = m_phys.s_curr * m_phys.alpha + m_phys.s_prev * (1.0f - m_phys.alpha);
+
+		// Render with current interpolated frame state
+		render(m_phys.s_lerp);
 	}
 
 	return m_run_state;
@@ -129,7 +160,7 @@ void Game::stop()
 	m_run_state = GRS_STOPPED;
 }
 
-void Game::update(float dt, float t)
+void Game::update(float state, float dt, float t)
 {
 	// If m_state == NULL, don't continue
 	if (m_state == nullptr)
@@ -138,10 +169,11 @@ void Game::update(float dt, float t)
 		return;
 	}
 
-	m_state->update(dt, t);
+	input();
+	m_state->update(state, t, dt);
 }
 
-void Game::render()
+void Game::render(float state)
 {
 	// If m_state == NULL, don't continue
 	if (m_state == nullptr)
@@ -154,7 +186,7 @@ void Game::render()
 	DisplayManager::clear(0x00333333);
 
 	// Render GameState
-	m_state->render();
+	m_state->render(state);
 
 	// Update window FBO
 	DisplayManager::render();
@@ -248,4 +280,14 @@ void Game::setState(GameState * state)
 GameState * const Game::getState()
 {
 	return m_state;
+}
+
+PhysicsState Game::getPhysState() const
+{
+	return m_phys;
+}
+
+float Game::getTimeInSec() const
+{
+	return static_cast<float>(SDL_GetTicks()) / 1000;
 }

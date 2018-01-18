@@ -9,11 +9,10 @@
     "framerate": 60.0
   },
   "audio": {
-    "music_vol": 64,
-    "audio_vol": 40
+    "music_vol": 40,
+    "audio_vol": 16
   },
   "physics": {
-    "tickrate": 100.0,
-    "timestep": 1e-2
+    "tickrate": 255.0
   }
 }

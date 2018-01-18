@@ -5,6 +5,7 @@
 #include "level.h"
 #include "audio_manager.h"
 #include "display_manager.h"
+#include "texture_manager.h"
 
 MenuState::MenuState(
 	Game * const game,
@@ -25,7 +26,6 @@ MenuState::MenuState(
 	m_menu_game_cfg.add_item(new MenuItem("AUDIO VOL", MI_NUMERIC, MenuItemVal(MIV_INT32, &m_game->getConfig().sfx_audio_vol, 4, 0, 128)));
 	m_menu_game_cfg.add_item(new MenuItem("MUSIC VOL", MI_NUMERIC, MenuItemVal(MIV_INT32, &m_game->getConfig().sfx_music_vol, 4, 0, 128)));
 	m_menu_game_cfg.add_item(new MenuItem("PHYS TICKRATE", MI_NUMERIC, MenuItemVal(MIV_FLOAT, &m_game->getConfig().phy_tickrate, 0.1f)));
-	m_menu_game_cfg.add_item(new MenuItem("PHYS TIMESTEP", MI_NUMERIC, MenuItemVal(MIV_FLOAT, &m_game->getConfig().phy_timestep, 0.1f)));
 
 	// Define level cfg menu
 	m_menu_level_cfg.add_item(new MenuItem("SEED", MI_NUMERIC, MenuItemVal(MIV_UINT32, &m_level->get_config().seed, 1)));
@@ -64,7 +64,7 @@ MenuState::MenuState(
 	m_menu.add_item(new MenuItem("EXIT TO OS", MI_BUTTON, MenuItemVal(), action_exit));
 
 	// Switch to menu music
-	AudioManager::play_music("MENU.MUS");
+	//AudioManager::play_music("MENU.MUS");
 
 	// Init level, init camera
 	action_regen();
@@ -75,17 +75,17 @@ MenuState::~MenuState()
 
 }
 
-void MenuState::update(float dt, float t)
+void MenuState::update(float state, float t, float dt)
 {
 	// Update level
 	if (m_level)
-		m_level->update();
+		m_level->update(state, t, dt);
 
 	// Update menu
 	m_menu.update();
 }
 
-void MenuState::render()
+void MenuState::render(float state)
 {
 	// Render level
 	if (m_level)
@@ -94,7 +94,7 @@ void MenuState::render()
 		DisplayManager::activate_camera("level");
 
 		// Render level
-		m_level->render();
+		m_level->render(state);
 	}
 
 	// Switch to menu camera
@@ -102,4 +102,16 @@ void MenuState::render()
 
 	// Render menu
 	m_menu.render();
+
+	// Render debug info
+	DisplayManager::set_text(0, 0, 16, 16, "FPS:" + std::to_string(m_game->getConfig().gfx_framerate), 255, 0, 255, TextureManager::load_font("MOLEZ.JSON"));
+	DisplayManager::set_text(0, 16*1, 16, 16, "UPS:" + std::to_string(m_game->getConfig().phy_tickrate), 255, 0, 255, TextureManager::load_font("MOLEZ.JSON"));
+	DisplayManager::set_text(0, 16*2, 16, 16, "T:" + std::to_string(m_game->getPhysState().t), 255, 0, 255, TextureManager::load_font("MOLEZ.JSON"));
+	DisplayManager::set_text(0, 16*3, 16, 16, "DT:" + std::to_string(m_game->getPhysState().dt), 255, 0, 255, TextureManager::load_font("MOLEZ.JSON"));
+	DisplayManager::set_text(0, 16*4, 16, 16, "T_CURRENT:" + std::to_string(m_game->getPhysState().t_curr), 255, 0, 255, TextureManager::load_font("MOLEZ.JSON"));
+	DisplayManager::set_text(0, 16*5, 16, 16, "T_ACCUM:" + std::to_string(m_game->getPhysState().t_acc), 255, 0, 255, TextureManager::load_font("MOLEZ.JSON"));
+	DisplayManager::set_text(0, 16*6, 16, 16, "S_CURRENT:" + std::to_string(m_game->getPhysState().s_curr), 255, 0, 255, TextureManager::load_font("MOLEZ.JSON"));
+	DisplayManager::set_text(0, 16*7, 16, 16, "S_PREVIOUS:" + std::to_string(m_game->getPhysState().s_prev), 255, 0, 255, TextureManager::load_font("MOLEZ.JSON"));
+	DisplayManager::set_text(0, 16*8, 16, 16, "S_LERP:" + std::to_string(m_game->getPhysState().s_lerp), 255, 0, 255, TextureManager::load_font("MOLEZ.JSON"));
+	DisplayManager::set_text(0, 16*9, 16, 16, "ALPHA:" + std::to_string(m_game->getPhysState().alpha), 255, 0, 255, TextureManager::load_font("MOLEZ.JSON"));
 }

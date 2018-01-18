@@ -216,19 +216,7 @@ void Level::alter(Material_t m, uint8_t r, int32_t x, int32_t y)
 	}
 }
 
-void Level::render()
-{
-	for (size_t i = 0; i < m_bitmap.size(); i++)
-	{
-		// Get pixel at x,y
-		auto & pixel = m_bitmap[i];
-
-		// Set pixel to window fbo at x,y
-		DisplayManager::set_pixel(pixel.x, pixel.y, pixel.r, pixel.g, pixel.b);
-	}
-}
-
-void Level::update()
+void Level::update(float state, float t, float dt)
 {
 	// Liquid physics
 	size_t liquid_size = m_liquid.size();
@@ -344,6 +332,18 @@ void Level::update()
 				sample_pixel(p_n2);
 			}
 		}
+	}
+}
+
+void Level::render(float state)
+{
+	for (size_t i = 0; i < m_bitmap.size(); i++)
+	{
+		// Get pixel at x,y
+		auto & pixel = m_bitmap[i];
+
+		// Set pixel to window fbo at x,y
+		DisplayManager::set_pixel(pixel.x, pixel.y, pixel.r, pixel.g, pixel.b);
 	}
 }
 

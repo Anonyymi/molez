@@ -15,8 +15,8 @@ public:
 	);
 	virtual ~MenuState() override;
 
-	virtual void update(float dt, float t) override;
-	virtual void render() override;
+	virtual void update(float state, float t, float dt) override;
+	virtual void render(float state) override;
 private:
 	Menu m_menu;
 	Menu m_menu_game_cfg;

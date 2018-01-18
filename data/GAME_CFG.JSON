@@ -6,7 +6,7 @@
     "fullscreen": true
   },
   "graphics": {
-    "framerate": 60.0,
+    "framerate": 60.0
   },
   "audio": {
     "music_vol": 64,

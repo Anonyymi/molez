@@ -1,5 +1,9 @@
 #include <iostream>
+#include <fstream>
+#include "3rdparty/json.hpp"
 #include "game.h"
+
+using json = nlohmann::json;
 
 int main(int argc, char * argv[])
 {
@@ -8,17 +12,30 @@ int main(int argc, char * argv[])
 	// Bootstrap game
 	try
 	{
+		// Read game cfg from JSON file
+		std::ifstream cfg_file("./data/GAME_CFG.JSON", std::ifstream::binary);
+
+		if (cfg_file.is_open() == false)
+		{
+			printf("::main(). Error loading game cfg file into memory!");
+			return -1;
+		}
+
+		json cfg_json;
+		cfg_file >> cfg_json;
+		cfg_file.close();
+
 		// Init game cfg
 		GameConfig cfg;
-		cfg.win_width = 640;
-		cfg.win_height = 467;
-		cfg.win_scale = 1;
-		cfg.win_fullscreen = true;
-		cfg.gfx_framerate = 60.0f;
-		cfg.sfx_music_vol = 64;
-		cfg.sfx_audio_vol = 40;
-		cfg.phy_tickrate = 100.0f;
-		cfg.phy_timestep = 1e-2f;
+		cfg.win_width = cfg_json["window"]["width"].get<int>();
+		cfg.win_height = cfg_json["window"]["height"].get<int>();
+		cfg.win_scale = cfg_json["window"]["scale"].get<int>();
+		cfg.win_fullscreen = cfg_json["window"]["fullscreen"].get<bool>();
+		cfg.gfx_framerate = cfg_json["graphics"]["framerate"].get<float>();
+		cfg.sfx_music_vol = cfg_json["audio"]["music_vol"].get<int>();;
+		cfg.sfx_audio_vol = cfg_json["audio"]["audio_vol"].get<int>();;
+		cfg.phy_tickrate = cfg_json["physics"]["tickrate"].get<float>();;
+		cfg.phy_timestep = cfg_json["physics"]["timestep"].get<float>();;
 
 		// Create game
 		Game game(
@@ -27,6 +44,12 @@ int main(int argc, char * argv[])
 
 		// Run game, thread halts here
 		game.run();
+	}
+	catch (const std::runtime_error & e)
+	{
+		printf("::main runtime_error! Message:\n%s", e.what());
+
+		return_code = -1;
 	}
 	catch (const std::exception & e)
 	{

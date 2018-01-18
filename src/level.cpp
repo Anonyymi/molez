@@ -148,7 +148,7 @@ void Level::sample_pixel(Pixel * pixel, int32_t offset_x, int32_t offset_y)
 	// Determine texture/properties by material
 	switch (pixel->m)
 	{
-		case M_VOID:		argb = 0xFF000000; break;
+		case M_VOID:		argb = TextureManager::sample_texture("VOID.PNG", s_x, s_y); break;
 		case M_DIRT:		argb = TextureManager::sample_texture("DIRT.PNG", s_x, s_y); break;
 		case M_ROCK:		argb = TextureManager::sample_texture("ROCK1.PNG", s_x, s_y); break;
 		case M_OBSIDIAN:	argb = TextureManager::sample_texture("OBSIDIAN.PNG", s_x, s_y); break;
@@ -327,9 +327,7 @@ void Level::update()
 
 			// Reset current liquid pixel to M_VOID
 			p_l->m = M_VOID;
-			p_l->r = 0;
-			p_l->g = 0;
-			p_l->b = 0;
+			sample_pixel(p_l);
 
 			// Swap the liquid pixel pointer to new one
 			m_liquid[i] = p_n;

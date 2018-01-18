@@ -24,6 +24,7 @@ namespace TextureManager
 
 		// Pre-load textures
 		load_texture("NULL.PNG");
+		load_texture("VOID.PNG");
 		load_texture("DIRT.PNG");
 		load_texture("ROCK1.PNG");
 		load_texture("OBSIDIAN.PNG");
@@ -117,7 +118,9 @@ namespace TextureManager
 		}
 		else
 		{
-			mlibc_err("TextureManager::sample_texture(%s). Error sampling texture!", file_path.c_str());
+			// This log entry locks up windows if it happens continuously.
+			// TODO; In these cases, just throw an error
+			//mlibc_err("TextureManager::sample_texture(%s). Error sampling texture!", file_path.c_str());
 		}
 
 		return 0;

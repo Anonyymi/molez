@@ -64,7 +64,7 @@ MenuState::MenuState(
 	m_menu.add_item(new MenuItem("EXIT TO OS", MI_BUTTON, nullptr, MIV_EMPTY, action_exit));
 
 	// Switch to menu music
-	AudioManager::play_music("MENU.MUS");
+	//AudioManager::play_music("MENU.MUS");
 
 	// Init level, init camera
 	action_regen();

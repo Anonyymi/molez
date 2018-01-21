@@ -70,8 +70,10 @@ Game::Game(
 	level_cfg.width = DisplayManager::ACTIVE_WINDOW->width;
 	level_cfg.height = DisplayManager::ACTIVE_WINDOW->height;
 	level_cfg.n_scale = 0.005f;
-	level_cfg.n_water = 40;
-	level_cfg.n_lava = 12;
+	level_cfg.dirt_n = 180;
+	level_cfg.object_n = 32;
+	level_cfg.water_n = 16;
+	level_cfg.lava_n = 0;
 	Level * level = new Level(level_cfg);
 
 	// Init GameState to MenuState
@@ -255,12 +257,12 @@ void Game::input()
 	}
 }
 
-void Game::setConfig(GameConfig cfg)
+void Game::setCfg(GameConfig cfg)
 {
 	m_cfg = cfg;
 }
 
-GameConfig & Game::getConfig()
+GameConfig & Game::getCfg()
 {
 	return m_cfg;
 }

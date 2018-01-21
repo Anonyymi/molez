@@ -3,6 +3,7 @@
 #include <ctime>
 #include "game.h"
 #include "level.h"
+#include "play_state.h"
 #include "audio_manager.h"
 #include "display_manager.h"
 #include "texture_manager.h"
@@ -18,30 +19,35 @@ MenuState::MenuState(
 	m_level(level)
 {
 	// Define game cfg menu
-	m_menu_game_cfg.add_item(new MenuItem("WIN WIDTH", MI_NUMERIC, MenuItemVal(MIV_INT32, &m_game->getConfig().win_width, 1)));
-	m_menu_game_cfg.add_item(new MenuItem("WIN HEIGHT", MI_NUMERIC, MenuItemVal(MIV_INT32, &m_game->getConfig().win_height, 1)));
-	m_menu_game_cfg.add_item(new MenuItem("WIN SCALE", MI_NUMERIC, MenuItemVal(MIV_INT32, &m_game->getConfig().win_scale, 1, 1, 5)));
-	m_menu_game_cfg.add_item(new MenuItem("FULLSCREEN", MI_NUMERIC, MenuItemVal(MIV_BOOL, &m_game->getConfig().win_fullscreen)));
-	m_menu_game_cfg.add_item(new MenuItem("GFX FRAMERATE", MI_NUMERIC, MenuItemVal(MIV_FLOAT, &m_game->getConfig().gfx_framerate, 0.1f)));
-	m_menu_game_cfg.add_item(new MenuItem("AUDIO VOL", MI_NUMERIC, MenuItemVal(MIV_INT32, &m_game->getConfig().sfx_audio_vol, 4, 0, 128)));
-	m_menu_game_cfg.add_item(new MenuItem("MUSIC VOL", MI_NUMERIC, MenuItemVal(MIV_INT32, &m_game->getConfig().sfx_music_vol, 4, 0, 128)));
-	m_menu_game_cfg.add_item(new MenuItem("PHYS TICKRATE", MI_NUMERIC, MenuItemVal(MIV_FLOAT, &m_game->getConfig().phy_tickrate, 0.1f)));
+	m_menu_game_cfg.add_item(new MenuItem("WIN WIDTH", MI_NUMERIC, MenuItemVal(MIV_INT32, &m_game->getCfg().win_width, 1)));
+	m_menu_game_cfg.add_item(new MenuItem("WIN HEIGHT", MI_NUMERIC, MenuItemVal(MIV_INT32, &m_game->getCfg().win_height, 1)));
+	m_menu_game_cfg.add_item(new MenuItem("WIN SCALE", MI_NUMERIC, MenuItemVal(MIV_INT32, &m_game->getCfg().win_scale, 1, 1, 5)));
+	m_menu_game_cfg.add_item(new MenuItem("FULLSCREEN", MI_NUMERIC, MenuItemVal(MIV_BOOL, &m_game->getCfg().win_fullscreen)));
+	m_menu_game_cfg.add_item(new MenuItem("GFX FRAMERATE", MI_NUMERIC, MenuItemVal(MIV_FLOAT, &m_game->getCfg().gfx_framerate, 0.1f)));
+	m_menu_game_cfg.add_item(new MenuItem("AUDIO VOL", MI_NUMERIC, MenuItemVal(MIV_INT32, &m_game->getCfg().sfx_audio_vol, 4, 0, 128)));
+	m_menu_game_cfg.add_item(new MenuItem("MUSIC VOL", MI_NUMERIC, MenuItemVal(MIV_INT32, &m_game->getCfg().sfx_music_vol, 4, 0, 128)));
+	m_menu_game_cfg.add_item(new MenuItem("PHYS TICKRATE", MI_NUMERIC, MenuItemVal(MIV_FLOAT, &m_game->getCfg().phy_tickrate, 0.1f)));
 
 	// Define level cfg menu
-	m_menu_level_cfg.add_item(new MenuItem("SEED", MI_NUMERIC, MenuItemVal(MIV_UINT32, &m_level->get_config().seed, 1)));
-	m_menu_level_cfg.add_item(new MenuItem("TYPE", MI_NUMERIC, MenuItemVal(MIV_UINT8, &m_level->get_config().type, 1, 0, 255)));
-	m_menu_level_cfg.add_item(new MenuItem("WIDTH", MI_NUMERIC, MenuItemVal(MIV_INT32, &m_level->get_config().width, 8)));
-	m_menu_level_cfg.add_item(new MenuItem("HEIGHT", MI_NUMERIC, MenuItemVal(MIV_INT32, &m_level->get_config().height, 8)));
-	m_menu_level_cfg.add_item(new MenuItem("NOISE", MI_NUMERIC, MenuItemVal(MIV_FLOAT, &m_level->get_config().n_scale, 0.001f)));
-	m_menu_level_cfg.add_item(new MenuItem("WATER", MI_NUMERIC, MenuItemVal(MIV_UINT8, &m_level->get_config().n_water, 1)));
-	m_menu_level_cfg.add_item(new MenuItem("LAVA", MI_NUMERIC, MenuItemVal(MIV_UINT8, &m_level->get_config().n_lava, 1)));
+	m_menu_level_cfg.add_item(new MenuItem("SEED", MI_NUMERIC, MenuItemVal(MIV_UINT32, &m_level->getCfg().seed, 1)));
+	m_menu_level_cfg.add_item(new MenuItem("TYPE", MI_NUMERIC, MenuItemVal(MIV_UINT8, &m_level->getCfg().type, 1, 0, 255)));
+	m_menu_level_cfg.add_item(new MenuItem("WIDTH", MI_NUMERIC, MenuItemVal(MIV_INT32, &m_level->getCfg().width, 8)));
+	m_menu_level_cfg.add_item(new MenuItem("HEIGHT", MI_NUMERIC, MenuItemVal(MIV_INT32, &m_level->getCfg().height, 8)));
+	m_menu_level_cfg.add_item(new MenuItem("NOISE", MI_NUMERIC, MenuItemVal(MIV_FLOAT, &m_level->getCfg().n_scale, 0.001f)));
+	m_menu_level_cfg.add_item(new MenuItem("DIRT", MI_NUMERIC, MenuItemVal(MIV_UINT8, &m_level->getCfg().dirt_n, 1)));
+	m_menu_level_cfg.add_item(new MenuItem("OBJECT", MI_NUMERIC, MenuItemVal(MIV_UINT8, &m_level->getCfg().object_n, 1)));
+	m_menu_level_cfg.add_item(new MenuItem("WATER", MI_NUMERIC, MenuItemVal(MIV_UINT8, &m_level->getCfg().water_n, 1)));
+	m_menu_level_cfg.add_item(new MenuItem("LAVA", MI_NUMERIC, MenuItemVal(MIV_UINT8, &m_level->getCfg().lava_n, 1)));
 
 	// Define game main menu
-	m_menu.add_item(new MenuItem("NEW GAME", MI_EMPTY, MenuItemVal()));
+	std::function<void()> action_newgame = [this]() {
+		m_game->setState(new PlayState(m_game, m_level));
+	};
+	m_menu.add_item(new MenuItem("NEW GAME", MI_BUTTON, MenuItemVal(), action_newgame));
 	m_menu.add_item(new MenuItem("SERVER BROWSER", MI_EMPTY, MenuItemVal()));
 	std::function<void()> action_regen = [this]() {
 		// Re-generate level
-		m_level->regenerate((uint32_t)time(NULL));
+		m_level->regen((uint32_t)time(NULL));
 
 		// Init menu camera, translate to window center
 		int m_camera_x = DisplayManager::ACTIVE_WINDOW->width / 2;
@@ -51,8 +57,8 @@ MenuState::MenuState(
 		m_camera->y = m_camera_y;
 
 		// Init level camera, translate to level center
-		int l_camera_x = m_level->get_config().width / 2;
-		int l_camera_y = -m_level->get_config().height / 2;
+		int l_camera_x = m_level->getCfg().width / 2;
+		int l_camera_y = -m_level->getCfg().height / 2;
 		DisplayManager::Camera * l_camera = DisplayManager::load_camera("level", 0, 0, 1);
 		l_camera->x = l_camera_x;
 		l_camera->y = l_camera_y;
@@ -104,14 +110,14 @@ void MenuState::render(float state)
 	m_menu.render();
 
 	// Render debug info
-	DisplayManager::set_text(0, 0, 16, 16, "FPS:" + std::to_string(m_game->getConfig().gfx_framerate), 255, 0, 255, TextureManager::load_font("MOLEZ.JSON"));
-	DisplayManager::set_text(0, 16*1, 16, 16, "UPS:" + std::to_string(m_game->getConfig().phy_tickrate), 255, 0, 255, TextureManager::load_font("MOLEZ.JSON"));
-	DisplayManager::set_text(0, 16*2, 16, 16, "T:" + std::to_string(m_game->getPhysState().t), 255, 0, 255, TextureManager::load_font("MOLEZ.JSON"));
-	DisplayManager::set_text(0, 16*3, 16, 16, "DT:" + std::to_string(m_game->getPhysState().dt), 255, 0, 255, TextureManager::load_font("MOLEZ.JSON"));
-	DisplayManager::set_text(0, 16*4, 16, 16, "T_CURRENT:" + std::to_string(m_game->getPhysState().t_curr), 255, 0, 255, TextureManager::load_font("MOLEZ.JSON"));
-	DisplayManager::set_text(0, 16*5, 16, 16, "T_ACCUM:" + std::to_string(m_game->getPhysState().t_acc), 255, 0, 255, TextureManager::load_font("MOLEZ.JSON"));
-	DisplayManager::set_text(0, 16*6, 16, 16, "S_CURRENT:" + std::to_string(m_game->getPhysState().s_curr), 255, 0, 255, TextureManager::load_font("MOLEZ.JSON"));
-	DisplayManager::set_text(0, 16*7, 16, 16, "S_PREVIOUS:" + std::to_string(m_game->getPhysState().s_prev), 255, 0, 255, TextureManager::load_font("MOLEZ.JSON"));
-	DisplayManager::set_text(0, 16*8, 16, 16, "S_LERP:" + std::to_string(m_game->getPhysState().s_lerp), 255, 0, 255, TextureManager::load_font("MOLEZ.JSON"));
-	DisplayManager::set_text(0, 16*9, 16, 16, "ALPHA:" + std::to_string(m_game->getPhysState().alpha), 255, 0, 255, TextureManager::load_font("MOLEZ.JSON"));
+	DisplayManager::set_text(0, 0, 16, 16, "FPS:" + std::to_string(m_game->getCfg().gfx_framerate), 255, 0, 255, TextureManager::load_font("MOLEZ.JSON"));
+	DisplayManager::set_text(0, 16 * 1, 16, 16, "UPS:" + std::to_string(m_game->getCfg().phy_tickrate), 255, 0, 255, TextureManager::load_font("MOLEZ.JSON"));
+	DisplayManager::set_text(0, 16 * 2, 16, 16, "T:" + std::to_string(m_game->getPhysState().t), 255, 0, 255, TextureManager::load_font("MOLEZ.JSON"));
+	DisplayManager::set_text(0, 16 * 3, 16, 16, "DT:" + std::to_string(m_game->getPhysState().dt), 255, 0, 255, TextureManager::load_font("MOLEZ.JSON"));
+	DisplayManager::set_text(0, 16 * 4, 16, 16, "T_CURRENT:" + std::to_string(m_game->getPhysState().t_curr), 255, 0, 255, TextureManager::load_font("MOLEZ.JSON"));
+	DisplayManager::set_text(0, 16 * 5, 16, 16, "T_ACCUM:" + std::to_string(m_game->getPhysState().t_acc), 255, 0, 255, TextureManager::load_font("MOLEZ.JSON"));
+	DisplayManager::set_text(0, 16 * 6, 16, 16, "S_CURRENT:" + std::to_string(m_game->getPhysState().s_curr), 255, 0, 255, TextureManager::load_font("MOLEZ.JSON"));
+	DisplayManager::set_text(0, 16 * 7, 16, 16, "S_PREVIOUS:" + std::to_string(m_game->getPhysState().s_prev), 255, 0, 255, TextureManager::load_font("MOLEZ.JSON"));
+	DisplayManager::set_text(0, 16 * 8, 16, 16, "S_LERP:" + std::to_string(m_game->getPhysState().s_lerp), 255, 0, 255, TextureManager::load_font("MOLEZ.JSON"));
+	DisplayManager::set_text(0, 16 * 9, 16, 16, "ALPHA:" + std::to_string(m_game->getPhysState().alpha), 255, 0, 255, TextureManager::load_font("MOLEZ.JSON"));
 }

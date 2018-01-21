@@ -206,8 +206,8 @@ namespace DisplayManager
 	}
 
 	void set_pixel(
-		size_t x,
-		size_t y,
+		int x,
+		int y,
 		uint8_t r,
 		uint8_t g,
 		uint8_t b,
@@ -272,10 +272,10 @@ namespace DisplayManager
 	}
 
 	void set_rect(
-		size_t x,
-		size_t y,
-		size_t w,
-		size_t h,
+		int x,
+		int y,
+		int w,
+		int h,
 		uint8_t r,
 		uint8_t g,
 		uint8_t b,
@@ -290,9 +290,9 @@ namespace DisplayManager
 			h += y;
 
 			// Render the rectangle
-			for (size_t i = y; i < h; i++)
+			for (int i = y; i < h; i++)
 			{
-				for (size_t j = x; j < w; j++)
+				for (int j = x; j < w; j++)
 				{
 					set_pixel(j, i, r, g, b, a, grey);
 				}
@@ -305,10 +305,10 @@ namespace DisplayManager
 	}
 
 	void set_text(
-		size_t x,
-		size_t y,
-		size_t c_width,
-		size_t c_height,
+		int x,
+		int y,
+		int c_width,
+		int c_height,
 		std::string text,
 		uint8_t r,
 		uint8_t g,
@@ -336,13 +336,13 @@ namespace DisplayManager
 				float char_rat_w = static_cast<float>(font->char_width) / static_cast<float>(c_width);
 				float char_rat_h = static_cast<float>(font->char_height) / static_cast<float>(c_height);
 
-				for (size_t i = 0; i < c_width; i++)
+				for (int i = 0; i < c_width; i++)
 				{
-					for (size_t j = 0; j < c_height; j++)
+					for (int j = 0; j < c_height; j++)
 					{
 						// Calculate texcoords and sample the pixel + scale according to size diff
-						int char_tex_x = char_idx.x * font->char_width + (j * char_rat_w);
-						int char_tex_y = char_idx.y * font->char_height + (i * char_rat_h);
+						int char_tex_x = char_idx.x * font->char_width + static_cast<int>(j * char_rat_w);
+						int char_tex_y = char_idx.y * font->char_height + static_cast<int>(i * char_rat_h);
 						auto char_argb = TextureManager::sample_texture(font->texture->file_path, char_tex_x, char_tex_y);
 
 						// Decode char ARGB hex value into component(s)

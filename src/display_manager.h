@@ -68,8 +68,8 @@ namespace DisplayManager
 	void render();
 	void clear(const int32_t argb);
 	void set_pixel(
-		size_t x,
-		size_t y,
+		int x,
+		int y,
 		uint8_t r,
 		uint8_t g,
 		uint8_t b,
@@ -77,10 +77,10 @@ namespace DisplayManager
 		bool grey = false
 	);
 	void set_rect(
-		size_t x,
-		size_t y,
-		size_t w,
-		size_t h,
+		int x,
+		int y,
+		int w,
+		int h,
 		uint8_t r,
 		uint8_t g,
 		uint8_t b,
@@ -88,10 +88,10 @@ namespace DisplayManager
 		bool grey = false
 	);
 	void set_text(
-		size_t x,
-		size_t y,
-		size_t c_width,
-		size_t c_height,
+		int x,
+		int y,
+		int c_width,
+		int c_height,
 		std::string text,
 		uint8_t r,
 		uint8_t g,

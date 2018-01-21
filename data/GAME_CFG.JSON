@@ -3,7 +3,7 @@
     "width": 640,
     "height": 467,
     "scale": 1,
-    "fullscreen": true
+    "fullscreen": false
   },
   "graphics": {
     "framerate": 60.0
@@ -13,6 +13,6 @@
     "audio_vol": 16
   },
   "physics": {
-    "tickrate": 255.0
+    "tickrate": 128.0
   }
 }

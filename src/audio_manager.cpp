@@ -38,6 +38,7 @@ namespace AudioManager
 		load_audio("MOVEUP.SFX");
 		load_audio("MOVEDOWN.SFX");
 		load_audio("SELECT.SFX");
+		load_audio("BEGIN.SFX");
 
 		mlibc_inf("AudioManager::init().");
 	}

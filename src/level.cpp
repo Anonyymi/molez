@@ -13,7 +13,7 @@ Level::Level(
 	m_height(m_cfg.height),
 	m_simplex(m_cfg.seed),
 	m_bitmap(m_width * m_height),
-	m_liquid()
+	m_fluid()
 {
 
 }
@@ -23,166 +23,151 @@ Level::~Level()
 
 }
 
-void Level::generate()
+void Level::gen()
 {
-	// Reset dimensions (cfg dimensions can be altered)
+	// Reset + resize
 	m_width = m_cfg.width;
 	m_height = m_cfg.height;
-
-	// Reset + resize bitmap
+	m_fluid.clear();
 	m_bitmap.clear();
 	m_bitmap.resize(m_width * m_height);
 
-	// Reset liquids
-	m_liquid.clear();
-
-	// Iterate through each pixel to generate level geometry
-	for (int32_t i = 0; i < m_height; i++)
+	// Generate level
+	for (int32_t y = 0; y < m_height; y++)
 	{
-		for (int32_t j = 0; j < m_width; j++)
+		for (int32_t x = 0; x < m_width; x++)
 		{
 			// Get pixel at x,y
-			auto * pixel = &m_bitmap[j + i * m_width];
+			auto * p = &m_bitmap[x + y * m_width];
 
-			// Init pixel value to M_VOID
-			pixel->x = j;
-			pixel->y = i;
-			pixel->r = 0;
-			pixel->g = 0;
-			pixel->b = 0;
-			pixel->m = M_VOID;
+			// Init pixel
+			p->x = x;
+			p->y = y;
+			p->n = 0;
+			p->m = M_VOID;
+			p->argb = 0x00000000;
 
-			// Noise value at x,y, re-scaled from -1,+1 to 0,+1
-			float n_value = m_simplex.noise(j * m_cfg.n_scale, i * m_cfg.n_scale);
-			n_value += 1.0f;
-			n_value *= 0.5f;
+			// Gen noise value at x,y in range 0..1
+			float n_val = m_simplex.noise(x * m_cfg.n_scale, y * m_cfg.n_scale);
+			n_val += 1.0f;
+			n_val *= 0.5f;
 
-			// Noise value at x,y, re-scaled from 0,+1 to 0,255
-			int n_ivalue = static_cast<int>(n_value * 255.0f);
+			// Re-scaled noise value at x,y in rage 0..255 + set pixel value
+			uint8_t n_val_i = static_cast<uint8_t>(n_val * 255.0f);
+			p->n = n_val_i;
 
-			pixel->n = static_cast<uint8_t>(n_ivalue);
-
-			// Select material
-			if (n_value <= 0.33f)
+			// Gen dirt & void
+			if (n_val_i <= m_cfg.dirt_n)
 			{
-				pixel->m = M_VOID;
+				p->m = M_DIRT;
 			}
-			else if (n_value >= 0.33f)
+			else
 			{
-				pixel->m = M_DIRT;
+				p->m = M_VOID;
 			}
 
-			// Sample texture rgb for the pixel
-			sample_pixel(pixel);
+			// Sample texture
+			samplePixel(p);
 		}
 	}
 
-	// Generate solids
-	generate_clumps(M_ROCK, M_DIRT, 128, RNG_DIST32(RNG) % 191, 128, 255);
+	// Gen objects
+	genObject();
 
-	// Generate liquids
-	generate_clumps(M_WATER, M_VOID, 255, m_cfg.n_water);
-	generate_clumps(M_LAVA, M_VOID, 255, m_cfg.n_lava);
+	// Gen fluids
+	genFluid();
 
-	mlibc_inf("Level::generate(). Level generated! Type: %u, width: %zu, height: %zu", m_cfg.type, m_width, m_height);
+	mlibc_inf("Level::gen(%u). Level generated! Type: %u, width: %zu, height: %zu", m_cfg.seed, m_cfg.type, m_width, m_height);
 }
 
-void Level::generate_clumps(Material_t m, Material_t t, size_t amount, uint8_t chance, uint8_t n_min, uint8_t n_max)
+void Level::genObject()
 {
-	for (size_t i = 0; i < amount; i++)
+	// Gen objects
+	for (size_t i = 0; i < 128; i++)
 	{
-		uint8_t rng_val = static_cast<uint8_t>(RNG_DIST8(RNG));
+		// Gen random value, range 0..255
+		uint8_t r_val = static_cast<uint8_t>(RNG_DIST8(RNG));
 
-		if (rng_val < chance)
+		// Gen object on chance
+		if (r_val < m_cfg.object_n)
 		{
-			// Water insert properties
-			uint8_t r = static_cast<uint8_t>(RNG_DIST8(RNG)) % 16 + 2;
+			// Get x,y
 			int32_t x = RNG_DIST32(RNG) % m_width;
 			int32_t y = RNG_DIST32(RNG) % m_height;
 
-			// Get pixel
+			// Get pixel at x,y
 			Pixel * p = &m_bitmap[x + y * m_width];
 
-			// Adjust radius with noise value
-			r += (p->n / 96);
-
-			// Only insert if current pixel is TARGET
-			if (n_min == 0 && n_max == 0)
-			{
-				if (p->m != t)
-					continue;
-			}
-			// Only insert between chosen noise values
-			else
-			{
-				if (p->n < n_min || p->n > n_max)
-					continue;
-			}
-
-			// Alter the level
-			alter(m, r, x, y);
+			// Draw the object in the level
+			draw(M_ROCK, x, y);
 		}
 	}
 }
 
-void Level::regenerate(uint32_t seed)
+void Level::genFluid()
 {
-	mlibc_inf("Level::regenerate(%u). Regenerating level...", seed);
+	// Gen water clumps
+	for (size_t i = 0; i < 128; i++)
+	{
+		// Gen random value, range 0..255
+		uint8_t r_val = static_cast<uint8_t>(RNG_DIST8(RNG));
 
-	// Re-seed noise generator(s)
+		// Gen water on chance
+		if (r_val < m_cfg.water_n)
+		{
+			// Get radius + x,y
+			uint8_t r = static_cast<uint8_t>(RNG_DIST8(RNG) % 16) + 8;
+			int32_t x = RNG_DIST32(RNG) % m_width;
+			int32_t y = RNG_DIST32(RNG) % m_height;
+
+			// Get pixel at x,y
+			Pixel * p = &m_bitmap[x + y * m_width];
+
+			// Only insert water in defined noise range
+			if (p->n < m_cfg.dirt_n)
+				continue;
+
+			// Alter the level
+			alter(M_WATER, r, x, y, false);
+		}
+	}
+
+	// Gen lava clumps
+	for (size_t i = 0; i < 128; i++)
+	{
+		// Gen random value, range 0..255
+		uint8_t r_val = static_cast<uint8_t>(RNG_DIST8(RNG));
+
+		// Gen lava on chance
+		if (r_val < m_cfg.lava_n)
+		{
+			// Get radius + x,y
+			uint8_t r = static_cast<uint8_t>(RNG_DIST8(RNG) % 16) + 8;
+			int32_t x = RNG_DIST32(RNG) % m_width;
+			int32_t y = RNG_DIST32(RNG) % m_height;
+
+			// Get pixel at x,y
+			Pixel * p = &m_bitmap[x + y * m_width];
+
+			// Alter the level
+			alter(M_LAVA, r, x, y, false);
+		}
+	}
+}
+
+void Level::regen(uint32_t seed)
+{
+	mlibc_inf("Level::regenerate(). Regenerating level...");
+
+	// Re-seed noise generator(s) + set cfg seed
 	m_simplex.reseed(seed);
+	m_cfg.seed = seed;
 
 	// Re-generate the level
-	generate();
+	gen();
 }
 
-void Level::sample_pixel(Pixel * pixel, int32_t offset_x, int32_t offset_y)
-{
-	// Final int32_t HEX ARGB color
-	int32_t argb = 0;
-
-	// Get sample xy-coords
-	int32_t s_x = pixel->x - offset_x;
-	int32_t s_y = pixel->y - offset_y;
-
-	// Determine texture/properties by material
-	switch (pixel->m)
-	{
-		case M_VOID:		argb = TextureManager::sample_texture("VOID.PNG", s_x, s_y); break;
-		case M_DIRT:		argb = TextureManager::sample_texture("DIRT.PNG", s_x, s_y); break;
-		case M_ROCK:		argb = TextureManager::sample_texture("ROCK1.PNG", s_x, s_y); break;
-		case M_OBSIDIAN:	argb = TextureManager::sample_texture("OBSIDIAN.PNG", s_x, s_y); break;
-		case M_MOSS:		argb = TextureManager::sample_texture("MOSS.PNG", s_x, s_y); break;
-		case M_WATER:
-		{
-			argb = TextureManager::sample_texture("WATER.PNG", s_x, pixel->y);
-
-			// This is a liquid
-			m_liquid.push_back(pixel);
-		} break;
-		case M_LAVA:
-		{
-			argb = TextureManager::sample_texture("LAVA.PNG", s_x, pixel->y);
-
-			// This is a liquid
-			m_liquid.push_back(pixel);
-		} break;
-	}
-
-	// Alpha 0x00 is transparency
-	uint8_t a = (argb & 0xFF000000) >> 24;
-	if (a == 0x00)
-	{
-		return;
-	}
-
-	// Assign new RGB values
-	pixel->r = (argb & 0x00FF0000) >> 16;
-	pixel->g = (argb & 0x0000FF00) >> 8;
-	pixel->b = (argb & 0x000000FF);
-}
-
-void Level::alter(Material_t m, uint8_t r, int32_t x, int32_t y)
+void Level::alter(Material_t m, uint8_t r, int32_t x, int32_t y, bool edit)
 {
 	// Calculate start coords
 	int32_t x_start = x - r;
@@ -201,40 +186,146 @@ void Level::alter(Material_t m, uint8_t r, int32_t x, int32_t y)
 			{
 				// Do not allow altering memory outside level bounds
 				if (j < 0 || j >= m_width || i < 0 || i >= m_height)
-				{
 					continue;
-				}
 
 				// Get the pixel
-				Pixel * pixel = &m_bitmap[j + i * m_width];
+				Pixel * p = &m_bitmap[j + i * m_width];
+
+				// Do not allow altering object(s) in non-editor mode
+				if (edit == false && p->m == M_ROCK)
+					continue;
 
 				// Alter it accordingly + resample
-				pixel->m = m;
-				sample_pixel(pixel);
+				p->m = m;
+				samplePixel(p);
 			}
 		}
 	}
 }
 
+void Level::draw(Material_t m, int32_t x, int32_t y)
+{
+	// Get texture for material
+	TextureManager::Texture * t = TextureManager::load_texture(sampleMaterial(m));
+
+	// Draw the texture/material on level bitmap
+	int t_x = 0;
+	int t_y = 0;
+	for (int32_t i = y; i < y + t->height; i++)
+	{
+		for (int32_t j = x; j < x + t->width; j++)
+		{
+			// Do not allow altering memory outside level bounds
+			if (j < 0 || j >= m_width || i < 0 || i >= m_height)
+			{
+				// Inc texcoord x + continue;
+				t_x++;
+				continue;
+			}
+
+			// Get the pixel
+			Pixel * p = &m_bitmap[j + i * m_width];
+
+			// Alter it accordingly + resample (Alpha 0x00 is transparency)
+			int32_t argb = TextureManager::sample_texture(t->file_path, t_x, t_y);
+			uint8_t a = (argb & 0xFF000000) >> 24;
+			if (a != 0x00)
+			{
+				p->m = m;
+				p->argb = argb;
+			}
+
+			// Inc texcoord x
+			t_x++;
+		}
+
+		// Inc texcoord y
+		t_y++;
+	}
+}
+
+void Level::samplePixel(Pixel * p)
+{
+	// Final int32_t HEX ARGB color
+	int32_t argb = 0;
+
+	// Determine texture/properties by material
+	switch (p->m)
+	{
+		case M_VOID:		argb = TextureManager::sample_texture(sampleMaterial(p->m), p->x, p->y); break;
+		case M_DIRT:		argb = TextureManager::sample_texture(sampleMaterial(p->m), p->x, p->y); break;
+		case M_ROCK:		argb = TextureManager::sample_texture(sampleMaterial(p->m), p->x, p->y); break;
+		case M_MOSS:		argb = TextureManager::sample_texture(sampleMaterial(p->m), p->x, p->y); break;
+		case M_OBSIDIAN:	argb = TextureManager::sample_texture(sampleMaterial(p->m), p->x, p->y); break;
+		case M_WATER:
+		{
+			argb = TextureManager::sample_texture(sampleMaterial(p->m), p->x, p->y);
+
+			// This is a fluid
+			m_fluid.push_back(p);
+		} break;
+		case M_LAVA:
+		{
+			argb = TextureManager::sample_texture(sampleMaterial(p->m), p->x, p->y);
+
+			// This is a fluid
+			m_fluid.push_back(p);
+		} break;
+	}
+
+	// Alpha 0x00 is transparency
+	uint8_t a = (argb & 0xFF000000) >> 24;
+	if (a == 0x00)
+	{
+		return;
+	}
+
+	// Assign new RGB values
+	p->argb = argb;
+}
+
+std::string Level::sampleMaterial(Material_t m)
+{
+	switch (m)
+	{
+		case M_VOID: return "VOID.PNG";
+		case M_DIRT: return "DIRT.PNG";
+		case M_ROCK:
+		{
+			// Gen random value, range 1..ROCK_MAX
+			uint8_t r_val = static_cast<uint8_t>(RNG_DIST8(RNG)) % 3;
+			r_val++;
+
+			// Return rock texture name
+			return "ROCK" + std::to_string(r_val) + ".PNG";
+		} break;
+		case M_MOSS: return "MOSS.PNG";
+		case M_OBSIDIAN: return "OBSIDIAN.PNG";
+		case M_WATER: return "WATER.PNG";
+		case M_LAVA: return "LAVA.PNG";
+	}
+
+	return "NULL.PNG";
+}
+
 void Level::update(float state, float t, float dt)
 {
-	// Liquid physics
-	size_t liquid_size = m_liquid.size();
-	for (size_t i = 0; i < liquid_size; i++)
+	// Fluid physics
+	size_t fluid_size = m_fluid.size();
+	for (size_t i = 0; i < fluid_size; i++)
 	{
-		// Get liquid pixel at x,y
-		Pixel * p_l = m_liquid[i];
+		// Get fluid pixel at x,y
+		Pixel * p_f = m_fluid[i];
 
-		// If pixel is not a liquid material anymore, erase + skip it
-		if (p_l->m == M_VOID)
+		// If pixel is not a fluid material anymore, erase + skip it
+		if (p_f->m == M_VOID)
 		{
 			// Erase
-			m_liquid.erase(m_liquid.begin() + i);
+			m_fluid.erase(m_fluid.begin() + i);
 
 			// Re-align loop size and iterator value
-			liquid_size--;
+			fluid_size--;
 			i--;
-
 			continue;
 		}
 
@@ -245,9 +336,9 @@ void Level::update(float state, float t, float dt)
 		Pixel * p_n2 = nullptr;
 
 		// Check pixel below
-		if ((p_l->y + 1) < m_height)
+		if ((p_f->y + 1) < m_height)
 		{
-			p_n = &m_bitmap[p_l->x + (p_l->y + 1) * m_width];
+			p_n = &m_bitmap[p_f->x + (p_f->y + 1) * m_width];
 
 			if (p_n->m != M_VOID)
 			{
@@ -257,9 +348,9 @@ void Level::update(float state, float t, float dt)
 		}
 
 		// Check pixel below+left
-		if (p_n == nullptr && (p_l->y + 1) < m_height && (p_l->x - 1) < m_width)
+		if (p_n == nullptr && (p_f->y + 1) < m_height && (p_f->x - 1) < m_width)
 		{
-			p_n = &m_bitmap[(p_l->x - 1) + (p_l->y + 1) * m_width];
+			p_n = &m_bitmap[(p_f->x - 1) + (p_f->y + 1) * m_width];
 
 			if (p_n->m != M_VOID)
 			{
@@ -269,9 +360,9 @@ void Level::update(float state, float t, float dt)
 		}
 
 		// Check pixel below+right
-		if (p_n == nullptr && (p_l->y + 1) < m_height && (p_l->x + 1) < m_width)
+		if (p_n == nullptr && (p_f->y + 1) < m_height && (p_f->x + 1) < m_width)
 		{
-			p_n = &m_bitmap[(p_l->x + 1) + (p_l->y + 1) * m_width];
+			p_n = &m_bitmap[(p_f->x + 1) + (p_f->y + 1) * m_width];
 
 			if (p_n->m != M_VOID)
 			{
@@ -281,9 +372,9 @@ void Level::update(float state, float t, float dt)
 		}
 
 		// Check pixel left
-		if (p_n == nullptr && (p_l->x - 1) < m_width)
+		if (p_n == nullptr && (p_f->x - 1) < m_width)
 		{
-			p_n = &m_bitmap[(p_l->x - 1) + p_l->y * m_width];
+			p_n = &m_bitmap[(p_f->x - 1) + p_f->y * m_width];
 
 			if (p_n->m != M_VOID)
 			{
@@ -293,9 +384,9 @@ void Level::update(float state, float t, float dt)
 		}
 
 		// Check pixel right
-		if (p_n == nullptr && (p_l->x + 1) < m_width)
+		if (p_n == nullptr && (p_f->x + 1) < m_width)
 		{
-			p_n = &m_bitmap[(p_l->x + 1) + p_l->y * m_width];
+			p_n = &m_bitmap[(p_f->x + 1) + p_f->y * m_width];
 
 			if (p_n->m != M_VOID)
 			{
@@ -304,32 +395,30 @@ void Level::update(float state, float t, float dt)
 			}
 		}
 
-		// Run liquid update
+		// Run fluid update
 		if (p_n != nullptr)
 		{
-			// Copy values to new liquid pixel
-			p_n->m = p_l->m;
-			p_n->r = p_l->r;
-			p_n->g = p_l->g;
-			p_n->b = p_l->b;
+			// Copy values to new fluid pixel
+			p_n->m = p_f->m;
+			p_n->argb = p_f->argb;
 
-			// Reset current liquid pixel to M_VOID
-			p_l->m = M_VOID;
-			sample_pixel(p_l);
+			// Reset current fluid pixel to M_VOID
+			p_f->m = M_VOID;
+			samplePixel(p_f);
 
-			// Swap the liquid pixel pointer to new one
-			m_liquid[i] = p_n;
+			// Swap the fluid pixel pointer to new one
+			m_fluid[i] = p_n;
 		}
 
-		// Run liquid update (collisions)
+		// Run fluid update (collisions)
 		if (p_n2 != nullptr)
 		{
 			// Both convert to obisidian if this was M_WATER <-> M_LAVA collision
-			if (p_l->m == M_WATER && p_n2->m == M_LAVA || p_l->m == M_LAVA && p_n2->m == M_WATER)
+			if (p_f->m == M_WATER && p_n2->m == M_LAVA || p_f->m == M_LAVA && p_n2->m == M_WATER)
 			{
 				// Convert lava to obisidian
 				p_n2->m = M_OBSIDIAN;
-				sample_pixel(p_n2);
+				samplePixel(p_n2);
 			}
 		}
 	}
@@ -340,19 +429,25 @@ void Level::render(float state)
 	for (size_t i = 0; i < m_bitmap.size(); i++)
 	{
 		// Get pixel at x,y
-		auto & pixel = m_bitmap[i];
+		auto & p = m_bitmap[i];
+
+		// Decode argb to rgba components
+		auto a = (p.argb & 0xFF000000) >> 24;
+		auto r = (p.argb & 0x00FF0000) >> 16;
+		auto g = (p.argb & 0x0000FF00) >> 8;
+		auto b = (p.argb & 0x000000FF);
 
 		// Set pixel to window fbo at x,y
-		DisplayManager::set_pixel(pixel.x, pixel.y, pixel.r, pixel.g, pixel.b);
+		DisplayManager::set_pixel(p.x, p.y, r, g, b, a, false);
 	}
 }
 
-void Level::set_config(LevelConfig cfg)
+void Level::setCfg(LevelConfig cfg)
 {
 	m_cfg = cfg;
 }
 
-LevelConfig & Level::get_config()
+LevelConfig & Level::getCfg()
 {
 	return m_cfg;
 }

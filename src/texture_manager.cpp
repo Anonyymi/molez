@@ -27,8 +27,10 @@ namespace TextureManager
 		load_texture("VOID.PNG");
 		load_texture("DIRT.PNG");
 		load_texture("ROCK1.PNG");
-		load_texture("OBSIDIAN.PNG");
+		load_texture("ROCK2.PNG");
+		load_texture("ROCK3.PNG");
 		load_texture("MOSS.PNG");
+		load_texture("OBSIDIAN.PNG");
 		load_texture("WATER.PNG");
 		load_texture("LAVA.PNG");
 

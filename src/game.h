@@ -55,8 +55,8 @@ public:
 	void render(float state);
 	void input();
 
-	void setConfig(GameConfig cfg);
-	GameConfig & getConfig();
+	void setCfg(GameConfig cfg);
+	GameConfig & getCfg();
 	void setState(GameState * state);
 	GameState * const getState();
 	PhysicsState getPhysState() const;

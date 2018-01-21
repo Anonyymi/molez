@@ -55,12 +55,23 @@ set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT M
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 # Add to-be-linked dependencies
-target_include_directories(Molez PUBLIC "${DIR_INC}")
-target_include_directories (Molez PUBLIC "${SDL2_INCLUDE_DIR}")
 find_package(SDL2 REQUIRED)
+target_include_directories(Molez PUBLIC "${DIR_INC}")
+target_include_directories(Molez PUBLIC "${SDL2_INCLUDE_DIR}")
 target_link_libraries(Molez PUBLIC
   ${SDL2_LIBRARY}
 )
+
+# Setup linker flags
+if (UNIX)
+  target_link_libraries(Molez PUBLIC
+    -lstdc++
+    -lm
+    -lSDL2_mixer
+    -static-libgcc
+    -static-libstdc++
+  )
+endif()
 
 # Set project build config
 add_custom_command(
@@ -69,12 +80,14 @@ add_custom_command(
 			${DIR_DTA}
 			${CMAKE_CURRENT_BINARY_DIR}/${DIR_DTA_NAME}
 )
-add_custom_command(
+if (MSVC)
+  add_custom_command(
 	TARGET Molez POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy_directory
 			${DIR_LIB}
-			${CMAKE_CURRENT_BINARY_DIR}
-)
+  			${CMAKE_CURRENT_BINARY_DIR}
+  )
+endif()
 
 # Set project install config
 install(TARGETS Molez DESTINATION ${DIR_BIN})

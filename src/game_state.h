@@ -12,7 +12,7 @@ public:
 	virtual void update(float state, float t, float dt) = 0;
 	virtual void render(float state) = 0;
 protected:
-	Game * m_game;
+	Game * const m_game;
 };
 
 #endif // GAME_STATE_H

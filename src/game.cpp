@@ -162,7 +162,7 @@ void Game::stop()
 	m_run_state = GRS_STOPPED;
 }
 
-void Game::update(float state, float dt, float t)
+void Game::update(float state, float t, float dt)
 {
 	// If m_state == NULL, don't continue
 	if (m_state == nullptr)

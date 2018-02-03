@@ -5,6 +5,9 @@
 #include "menu.h"
 
 class Level;
+class Sprite;
+
+extern Sprite * test;
 
 class PlayState : public GameState
 {

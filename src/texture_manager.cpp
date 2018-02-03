@@ -112,11 +112,13 @@ namespace TextureManager
 
 	int32_t sample_texture(const std::string & file_path, int x, int y)
 	{
+		int32_t sample = 0;
+
 		if (LOADED_TEXTURES.count(file_path) > 0)
 		{
 			Texture * texture = LOADED_TEXTURES[file_path];
 
-			return texture->data[(x % texture->width) + (y % texture->height) * texture->width];
+			sample = texture->data[(x % texture->width) + (y % texture->height) * texture->width];
 		}
 		else
 		{
@@ -125,7 +127,41 @@ namespace TextureManager
 			//mlibc_err("TextureManager::sample_texture(%s). Error sampling texture!", file_path.c_str());
 		}
 
-		return 0;
+		return sample;
+	}
+
+	std::vector<int32_t *> sample_texture(const std::string & file_path, int x, int y, int w, int h)
+	{
+		std::vector<int32_t *> samples;
+
+		if (LOADED_TEXTURES.count(file_path) > 0)
+		{
+			Texture * texture = LOADED_TEXTURES[file_path];
+
+			// Alloc destination vector
+			samples.resize(w * h);
+
+			// Gather samples as raw int32_t pointers to source texture data
+			int w_dest = w;
+			int h_dest = h;
+			int w_src = x + w;
+			int h_src = y + h;
+			for (int i = 0; i < h_dest; i++)
+			{
+				for (int j = 0; j < w_dest; j++)
+				{
+					samples[i + j * w_dest] = &texture->data[((j + x) % texture->width) + ((i + y) % texture->height) * texture->width];
+				}
+			}
+		}
+		else
+		{
+			// This log entry locks up windows if it happens continuously.
+			// TODO; In these cases, just throw an error
+			//mlibc_err("TextureManager::sample_texture(%s). Error sampling texture!", file_path.c_str());
+		}
+
+		return samples;
 	}
 
 	// Fonts

@@ -6,6 +6,9 @@
 #include "audio_manager.h"
 #include "display_manager.h"
 #include "texture_manager.h"
+#include "sprite.h"
+
+Sprite * test;
 
 PlayState::PlayState(
 	Game * const game,
@@ -35,6 +38,9 @@ PlayState::PlayState(
 
 	// Play round start sound
 	AudioManager::play_audio("BEGIN.SFX");
+
+	// Test sprite!
+	test = new Sprite("PLAYER.JSON");
 }
 
 PlayState::~PlayState()
@@ -47,6 +53,10 @@ void PlayState::update(float state, float t, float dt)
 	// Update level
 	if (m_level)
 		m_level->update(state, t, dt);
+
+	// Update player
+	if (test)
+		test->update(t, dt);
 
 	// Update gui
 	//m_menu.update();
@@ -62,6 +72,12 @@ void PlayState::render(float state)
 
 		// Render level
 		m_level->render(state);
+	}
+
+	// Render player
+	if (test)
+	{
+		test->render(64, 64);
 	}
 
 	// Switch to gui camera

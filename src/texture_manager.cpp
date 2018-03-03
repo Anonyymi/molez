@@ -24,7 +24,7 @@ namespace TextureManager
 
 		// Pre-load textures
 		load_texture("NULL.PNG");
-		load_texture("VOID.PNG");
+		load_texture("AIR.PNG");
 		load_texture("DIRT.PNG");
 		load_texture("ROCK1.PNG");
 		load_texture("ROCK2.PNG");

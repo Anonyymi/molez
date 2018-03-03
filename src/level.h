@@ -10,12 +10,21 @@ using namespace Math;
 enum Material_t : uint8_t
 {
 	M_VOID = 0,
-	M_DIRT = 1,
-	M_ROCK = 2,
-	M_MOSS = 3,
-	M_OBSIDIAN = 4,
-	M_WATER = 20,
-	M_LAVA = 21
+	M_SOLID = 1,
+	M_SOLID_ID = 2,
+	M_FLUID = 3
+};
+
+enum Texture_t : uint8_t
+{
+	T_NULL = 0,
+	T_AIR = 1,
+	T_DIRT = 2,
+	T_ROCK = 3,
+	T_MOSS = 4,
+	T_OBSIDIAN = 5,
+	T_WATER = 6,
+	T_LAVA = 7
 };
 
 enum Level_t : uint8_t
@@ -28,6 +37,7 @@ struct Pixel
 	int32_t x, y;					// xy-coords in bitmap
 	uint8_t n;						// noise value
 	Material_t m;					// material id
+	Texture_t t;					// texture id
 	int32_t argb;					// color, ARGB
 };
 
@@ -56,10 +66,10 @@ public:
 	void genObject();
 	void genFluid();
 	void regen(uint32_t seed);
-	void alter(Material_t m, uint8_t r, int32_t x, int32_t y, bool edit = false);
-	void draw(Material_t m, int32_t x, int32_t y);
+	void alter(Material_t m, Texture_t t, uint8_t r, int32_t x, int32_t y, bool edit = false);
+	void draw(Material_t m, Texture_t t, int32_t x, int32_t y);
 	void samplePixel(Pixel * p);
-	std::string sampleMaterial(Material_t m);
+	std::string sampleTexture(Texture_t t);
 	void update(float state, float t, float dt);
 	void render(float state);
 

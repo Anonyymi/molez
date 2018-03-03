@@ -45,6 +45,7 @@ void Level::gen()
 			p->y = y;
 			p->n = 0;
 			p->m = M_VOID;
+			p->t = T_NULL;
 			p->argb = 0x00000000;
 
 			// Gen noise value at x,y in range 0..1
@@ -56,14 +57,16 @@ void Level::gen()
 			uint8_t n_val_i = static_cast<uint8_t>(n_val * 255.0f);
 			p->n = n_val_i;
 
-			// Gen dirt & void
+			// Gen dirt & air
 			if (n_val_i <= m_cfg.dirt_n)
 			{
-				p->m = M_DIRT;
+				p->m = M_SOLID;
+				p->t = T_DIRT;
 			}
 			else
 			{
 				p->m = M_VOID;
+				p->t = T_AIR;
 			}
 
 			// Sample texture
@@ -99,7 +102,7 @@ void Level::genObject()
 			Pixel * p = &m_bitmap[x + y * m_width];
 
 			// Draw the object in the level
-			draw(M_ROCK, x, y);
+			draw(M_SOLID_ID, T_ROCK, x, y);
 		}
 	}
 }
@@ -128,7 +131,7 @@ void Level::genFluid()
 				continue;
 
 			// Alter the level
-			alter(M_WATER, r, x, y, false);
+			alter(M_FLUID, T_WATER, r, x, y, false);
 		}
 	}
 
@@ -150,7 +153,7 @@ void Level::genFluid()
 			Pixel * p = &m_bitmap[x + y * m_width];
 
 			// Alter the level
-			alter(M_LAVA, r, x, y, false);
+			alter(M_FLUID, T_LAVA, r, x, y, false);
 		}
 	}
 }
@@ -167,7 +170,7 @@ void Level::regen(uint32_t seed)
 	gen();
 }
 
-void Level::alter(Material_t m, uint8_t r, int32_t x, int32_t y, bool edit)
+void Level::alter(Material_t m, Texture_t t, uint8_t r, int32_t x, int32_t y, bool edit)
 {
 	// Calculate start coords
 	int32_t x_start = x - r;
@@ -191,35 +194,36 @@ void Level::alter(Material_t m, uint8_t r, int32_t x, int32_t y, bool edit)
 				// Get the pixel
 				Pixel * p = &m_bitmap[j + i * m_width];
 
-				// Do not allow altering object(s) in non-editor mode
-				if (edit == false && p->m == M_ROCK)
+				// Do not allow altering indestructible data in non-editor mode
+				if (edit == false && p->m == M_SOLID_ID)
 					continue;
 
 				// Alter it accordingly + resample
 				p->m = m;
+				p->t = t;
 				samplePixel(p);
 			}
 		}
 	}
 }
 
-void Level::draw(Material_t m, int32_t x, int32_t y)
+void Level::draw(Material_t m, Texture_t t, int32_t x, int32_t y)
 {
 	// Get texture for material
-	TextureManager::Texture * t = TextureManager::load_texture(sampleMaterial(m));
+	TextureManager::Texture * tex = TextureManager::load_texture(sampleTexture(t));
 
 	// Draw the texture/material on level bitmap
-	int t_x = 0;
-	int t_y = 0;
-	for (int32_t i = y; i < y + t->height; i++)
+	int tex_x = 0;
+	int tex_y = 0;
+	for (int32_t i = y; i < y + tex->height; i++)
 	{
-		for (int32_t j = x; j < x + t->width; j++)
+		for (int32_t j = x; j < x + tex->width; j++)
 		{
 			// Do not allow altering memory outside level bounds
 			if (j < 0 || j >= m_width || i < 0 || i >= m_height)
 			{
 				// Inc texcoord x + continue;
-				t_x++;
+				tex_x++;
 				continue;
 			}
 
@@ -227,7 +231,7 @@ void Level::draw(Material_t m, int32_t x, int32_t y)
 			Pixel * p = &m_bitmap[j + i * m_width];
 
 			// Alter it accordingly + resample (Alpha 0x00 is transparency)
-			int32_t argb = TextureManager::sample_texture(t->file_path, t_x, t_y);
+			int32_t argb = TextureManager::sample_texture(tex->file_path, tex_x, tex_y);
 			uint8_t a = (argb & 0xFF000000) >> 24;
 			if (a != 0x00)
 			{
@@ -236,11 +240,11 @@ void Level::draw(Material_t m, int32_t x, int32_t y)
 			}
 
 			// Inc texcoord x
-			t_x++;
+			tex_x++;
 		}
 
 		// Inc texcoord y
-		t_y++;
+		tex_y++;
 	}
 }
 
@@ -250,23 +254,24 @@ void Level::samplePixel(Pixel * p)
 	int32_t argb = 0;
 
 	// Determine texture/properties by material
-	switch (p->m)
+	switch (p->t)
 	{
-		case M_VOID:		argb = TextureManager::sample_texture(sampleMaterial(p->m), p->x, p->y); break;
-		case M_DIRT:		argb = TextureManager::sample_texture(sampleMaterial(p->m), p->x, p->y); break;
-		case M_ROCK:		argb = TextureManager::sample_texture(sampleMaterial(p->m), p->x, p->y); break;
-		case M_MOSS:		argb = TextureManager::sample_texture(sampleMaterial(p->m), p->x, p->y); break;
-		case M_OBSIDIAN:	argb = TextureManager::sample_texture(sampleMaterial(p->m), p->x, p->y); break;
-		case M_WATER:
+		case T_NULL:		argb = 0x00000000;														break;
+		case T_AIR:			argb = TextureManager::sample_texture(sampleTexture(p->t), p->x, p->y); break;
+		case T_DIRT:		argb = TextureManager::sample_texture(sampleTexture(p->t), p->x, p->y); break;
+		case T_ROCK:		argb = TextureManager::sample_texture(sampleTexture(p->t), p->x, p->y); break;
+		case T_MOSS:		argb = TextureManager::sample_texture(sampleTexture(p->t), p->x, p->y); break;
+		case T_OBSIDIAN:	argb = TextureManager::sample_texture(sampleTexture(p->t), p->x, p->y); break;
+		case T_WATER:
 		{
-			argb = TextureManager::sample_texture(sampleMaterial(p->m), p->x, p->y);
+			argb = TextureManager::sample_texture(sampleTexture(p->t), p->x, p->y);
 
 			// This is a fluid
 			m_fluid.push_back(p);
 		} break;
-		case M_LAVA:
+		case T_LAVA:
 		{
-			argb = TextureManager::sample_texture(sampleMaterial(p->m), p->x, p->y);
+			argb = TextureManager::sample_texture(sampleTexture(p->t), p->x, p->y);
 
 			// This is a fluid
 			m_fluid.push_back(p);
@@ -284,13 +289,13 @@ void Level::samplePixel(Pixel * p)
 	p->argb = argb;
 }
 
-std::string Level::sampleMaterial(Material_t m)
+std::string Level::sampleTexture(Texture_t t)
 {
-	switch (m)
+	switch (t)
 	{
-		case M_VOID: return "VOID.PNG";
-		case M_DIRT: return "DIRT.PNG";
-		case M_ROCK:
+		case T_AIR: return "AIR.PNG";
+		case T_DIRT: return "DIRT.PNG";
+		case T_ROCK:
 		{
 			// Gen random value, range 1..ROCK_MAX
 			uint8_t r_val = static_cast<uint8_t>(RNG_DIST8(RNG)) % 3;
@@ -299,10 +304,10 @@ std::string Level::sampleMaterial(Material_t m)
 			// Return rock texture name
 			return "ROCK" + std::to_string(r_val) + ".PNG";
 		} break;
-		case M_MOSS: return "MOSS.PNG";
-		case M_OBSIDIAN: return "OBSIDIAN.PNG";
-		case M_WATER: return "WATER.PNG";
-		case M_LAVA: return "LAVA.PNG";
+		case T_MOSS: return "MOSS.PNG";
+		case T_OBSIDIAN: return "OBSIDIAN.PNG";
+		case T_WATER: return "WATER.PNG";
+		case T_LAVA: return "LAVA.PNG";
 	}
 
 	return "NULL.PNG";
@@ -318,7 +323,7 @@ void Level::update(float state, float t, float dt)
 		Pixel * p_f = m_fluid[i];
 
 		// If pixel is not a fluid material anymore, erase + skip it
-		if (p_f->m == M_VOID)
+		if (p_f->m != M_FLUID)
 		{
 			// Erase
 			m_fluid.erase(m_fluid.begin() + i);
@@ -329,11 +334,11 @@ void Level::update(float state, float t, float dt)
 			continue;
 		}
 
-		// Neighbor pixel in our bitmap IF IT IS M_VOID
+		// Neighbor pixel in our bitmap if it is M_VOID
 		Pixel * p_n = nullptr;
 
-		// Pixel below us IF IT IS NOT M_VOID
-		Pixel * p_n2 = nullptr;
+		// Neighbor pixel in our bitmap if it is M_FLUID
+		Pixel * p_nf = nullptr;
 
 		// Check pixel below
 		if ((p_f->y + 1) < m_height)
@@ -342,7 +347,7 @@ void Level::update(float state, float t, float dt)
 
 			if (p_n->m != M_VOID)
 			{
-				p_n2 = p_n;
+				p_nf = p_n;
 				p_n = nullptr;
 			}
 		}
@@ -354,7 +359,7 @@ void Level::update(float state, float t, float dt)
 
 			if (p_n->m != M_VOID)
 			{
-				p_n2 = p_n;
+				p_nf = p_n;
 				p_n = nullptr;
 			}
 		}
@@ -366,7 +371,7 @@ void Level::update(float state, float t, float dt)
 
 			if (p_n->m != M_VOID)
 			{
-				p_n2 = p_n;
+				p_nf = p_n;
 				p_n = nullptr;
 			}
 		}
@@ -378,7 +383,7 @@ void Level::update(float state, float t, float dt)
 
 			if (p_n->m != M_VOID)
 			{
-				p_n2 = p_n;
+				p_nf = p_n;
 				p_n = nullptr;
 			}
 		}
@@ -390,7 +395,7 @@ void Level::update(float state, float t, float dt)
 
 			if (p_n->m != M_VOID)
 			{
-				p_n2 = p_n;
+				p_nf = p_n;
 				p_n = nullptr;
 			}
 		}
@@ -400,10 +405,12 @@ void Level::update(float state, float t, float dt)
 		{
 			// Copy values to new fluid pixel
 			p_n->m = p_f->m;
+			p_n->t = p_f->t;
 			p_n->argb = p_f->argb;
 
-			// Reset current fluid pixel to M_VOID
+			// Reset current fluid pixel to M_VOID & T_AIR
 			p_f->m = M_VOID;
+			p_f->t = T_AIR;
 			samplePixel(p_f);
 
 			// Swap the fluid pixel pointer to new one
@@ -411,14 +418,22 @@ void Level::update(float state, float t, float dt)
 		}
 
 		// Run fluid update (collisions)
-		if (p_n2 != nullptr)
+		if (p_nf != nullptr && p_nf->m == M_FLUID)
 		{
-			// Both convert to obisidian if this was M_WATER <-> M_LAVA collision
-			if (p_f->m == M_WATER && p_n2->m == M_LAVA || p_f->m == M_LAVA && p_n2->m == M_WATER)
+			// Convert lava to obisidian on lava <-> water collision
+			if (p_f->t == T_LAVA && p_nf->t == T_WATER)
 			{
-				// Convert lava to obisidian
-				p_n2->m = M_OBSIDIAN;
-				samplePixel(p_n2);
+				p_f->m = M_SOLID;
+				p_f->t = T_OBSIDIAN;
+				samplePixel(p_f);
+			}
+
+			// Convert lava to obisidian on water <-> lava collision
+			if (p_f->t == T_WATER && p_nf->t == T_LAVA)
+			{
+				p_nf->m = M_SOLID;
+				p_nf->t = T_OBSIDIAN;
+				samplePixel(p_nf);
 			}
 		}
 	}

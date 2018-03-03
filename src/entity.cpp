@@ -51,7 +51,7 @@ void Entity::update(float t, float dt)
 			m_health = m_props.health;
 
 			// Clear the level around player
-			m_level->alter(M_VOID, 24, m_pva.pos.x, m_pva.pos.y, true);
+			m_level->alter(M_VOID, T_AIR, 24, m_pva.pos.x, m_pva.pos.y, true);
 
 			// Play spawn audio
 			AudioManager::play_audio("ALIVE.SFX");

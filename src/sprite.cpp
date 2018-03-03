@@ -103,7 +103,7 @@ void Sprite::update(float t, float dt)
 	}
 }
 
-void Sprite::render(int x, int y)
+void Sprite::render(int x, int y, int alpha)
 {
 	// Do not continue if current animation does not exist
 	if (m_anims.count(m_animIdent) == 0)
@@ -126,6 +126,12 @@ void Sprite::render(int x, int y)
 		auto r = (argb & 0x00FF0000) >> 16;
 		auto g = (argb & 0x0000FF00) >> 8;
 		auto b = (argb & 0x000000FF);
+
+		// Either force alpha or use sprite alpha
+		if (alpha != -1 && a != 0)
+		{
+			a = static_cast<uint8_t>(alpha);
+		}
 
 		// Plot it!
 		DisplayManager::set_pixel(x + p_x, y + p_y, r, g, b, a, false);

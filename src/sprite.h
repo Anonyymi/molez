@@ -7,7 +7,7 @@
 
 namespace TextureManager
 {
-	struct Texture;
+struct Texture;
 }
 
 struct SpriteFrame
@@ -66,7 +66,7 @@ public:
 	~Sprite();
 
 	void update(float t, float dt);
-	void render(int x, int y);
+	void render(int x, int y, int alpha = -1);
 private:
 	std::string m_filePath;
 	TextureManager::Texture * m_sheet;

@@ -135,11 +135,11 @@ namespace AudioManager
 		{
 			PLAYING_AUDIO = LOADED_AUDIO[file_path];
 
-			//if (Mix_PlayChannel(0, PLAYING_AUDIO, 0) != 0)
-			//{
-			//	mlibc_err("AudioManager::play_audio(%s). Error playing audio!", file_path.c_str());
-			//	return;
-			//}
+			if (Mix_PlayChannel(0, PLAYING_AUDIO, 0) != 0)
+			{
+				mlibc_err("AudioManager::play_audio(%s). Error playing audio!", file_path.c_str());
+				return;
+			}
 		}
 		else
 		{

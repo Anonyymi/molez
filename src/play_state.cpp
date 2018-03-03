@@ -1,21 +1,24 @@
 #include "play_state.h"
 #include <functional>
 #include <ctime>
+#include <SDL2/SDL.h>
 #include "game.h"
 #include "level.h"
 #include "audio_manager.h"
 #include "display_manager.h"
 #include "texture_manager.h"
+#include "input_manager.h"
 #include "sprite.h"
-
-Sprite * test;
+#include "entity.h"
+#include "player.h"
 
 PlayState::PlayState(
 	Game * const game,
-	Level * const level
+	Level * level
 ) :
 	GameState(game),
-	m_level(level)
+	m_level(level),
+	m_entities()
 {
 	// Init gui camera, translate to window center
 	int g_camera_x = DisplayManager::ACTIVE_WINDOW->width / 2;
@@ -39,27 +42,66 @@ PlayState::PlayState(
 	// Play round start sound
 	AudioManager::play_audio("BEGIN.SFX");
 
-	// Test sprite!
-	test = new Sprite("PLAYER.JSON");
+	// Spawn 2 player entities (TODO; make this configurable)
+	EntityProps props_player1{ E_PLAYER_OFFLINE, "player 1", vec2(), 2.5f, ES_DEAD, 100.0f };
+	EntityProps props_player2{ E_PLAYER_OFFLINE, "player 2", vec2(), 2.5f, ES_DEAD, 100.0f };
+	Player * player1 = new Player(m_game, m_level, props_player1);
+	Player * player2 = new Player(m_game, m_level, props_player2);
+	m_entities.push_back(player1);
+	m_entities.push_back(player2);
 }
 
 PlayState::~PlayState()
 {
-
+	for (auto e : m_entities)
+	{
+		delete e;
+	}
 }
 
 void PlayState::update(float state, float t, float dt)
 {
+	// Handle input
+	if (InputManager::KBOARD[SDLK_1])
+	{
+		Entity * player = getEntityByName("player 1");
+
+		if (player)
+		{
+			player->setState(ES_DEAD);
+		}
+
+		InputManager::KBOARD[SDLK_1] = false;
+	}
+	if (InputManager::KBOARD[SDLK_2])
+	{
+		Entity * player = getEntityByName("player 2");
+
+		if (player)
+		{
+			player->setState(ES_DEAD);
+		}
+
+		InputManager::KBOARD[SDLK_2] = false;
+	}
+
 	// Update level
 	if (m_level)
+	{
 		m_level->update(state, t, dt);
+	}
 
-	// Update player
-	if (test)
-		test->update(t, dt);
+	// Update entities
+	for (auto e : m_entities)
+	{
+		e->update(t, dt);
+	}
 
 	// Update gui
 	//m_menu.update();
+
+	// Update time
+	m_time += dt;
 }
 
 void PlayState::render(float state)
@@ -74,10 +116,10 @@ void PlayState::render(float state)
 		m_level->render(state);
 	}
 
-	// Render player
-	if (test)
+	// Render entities
+	for (auto e : m_entities)
 	{
-		test->render(64, 64);
+		e->render();
 	}
 
 	// Switch to gui camera
@@ -85,4 +127,17 @@ void PlayState::render(float state)
 
 	// Render gui
 	//m_menu.render();
+}
+
+Entity * PlayState::getEntityByName(const std::string & name)
+{
+	for (auto e : m_entities)
+	{
+		if (e->getProps().name == name)
+		{
+			return e;
+		}
+	}
+
+	return nullptr;
 }

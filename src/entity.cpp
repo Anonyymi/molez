@@ -1,6 +1,7 @@
 #include "entity.h"
 #include "game.h"
 #include "level.h"
+#include "audio_manager.h"
 #include "3rdparty/mlibc_log.h"
 
 Entity::Entity(
@@ -51,6 +52,9 @@ void Entity::update(float t, float dt)
 
 			// Clear the level around player
 			m_level->alter(M_VOID, 24, m_pva.pos.x, m_pva.pos.y, true);
+
+			// Play spawn audio
+			AudioManager::play_audio("ALIVE.SFX");
 		}
 		// Respawn process incomplete, move towards spawn pos
 		else

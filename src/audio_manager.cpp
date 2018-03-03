@@ -6,150 +6,151 @@
 namespace AudioManager
 {
 
-	const std::string DATA_DIR = "./data/sfx/";
-	Mix_Music * PLAYING_MUSIC = NULL;
-	Mix_Chunk * PLAYING_AUDIO = NULL;
-	std::map<std::string, Mix_Music *> LOADED_MUSIC = std::map<std::string, Mix_Music *>();
-	std::map<std::string, Mix_Chunk *> LOADED_AUDIO = std::map<std::string, Mix_Chunk *>();
+const std::string DATA_DIR = "./data/sfx/";
+Mix_Music * PLAYING_MUSIC = NULL;
+Mix_Chunk * PLAYING_AUDIO = NULL;
+std::map<std::string, Mix_Music *> LOADED_MUSIC = std::map<std::string, Mix_Music *>();
+std::map<std::string, Mix_Chunk *> LOADED_AUDIO = std::map<std::string, Mix_Chunk *>();
 
-	// Init
-	void init()
+// Init
+void init()
+{
+	int return_code = 0;
+
+	// Init SDL2_mixer
+	return_code = Mix_Init(MIX_INIT_MOD);
+	if (return_code == 0)
 	{
-		int return_code = 0;
-
-		// Init SDL2_mixer
-		return_code = Mix_Init(MIX_INIT_MOD);
-		if (return_code == 0)
-		{
-			Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096);
-			mlibc_inf("AudioManager::init(). SDL2_mixer Initialized successfully.");
-		}
-		else
-		{
-			mlibc_err("AudioManager::init(). Mix_Init Error: %s", SDL_GetError());
-		}
-
-		// Pre-load music
-		load_music("MENU.MUS");
-		load_music("INGAME1.MUS");
-		load_music("INGAME2.MUS");
-
-		// Pre-load audio
-		load_audio("MOVEUP.SFX");
-		load_audio("MOVEDOWN.SFX");
-		load_audio("SELECT.SFX");
-		load_audio("BEGIN.SFX");
-
-		mlibc_inf("AudioManager::init().");
+		Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096);
+		mlibc_inf("AudioManager::init(). SDL2_mixer Initialized successfully.");
+	}
+	else
+	{
+		mlibc_err("AudioManager::init(). Mix_Init Error: %s", SDL_GetError());
 	}
 
-	// Quit (clears memory)
-	void quit()
+	// Pre-load music
+	load_music("MENU.MUS");
+	load_music("INGAME1.MUS");
+	load_music("INGAME2.MUS");
+
+	// Pre-load audio
+	load_audio("MOVEUP.SFX");
+	load_audio("MOVEDOWN.SFX");
+	load_audio("SELECT.SFX");
+	load_audio("BEGIN.SFX");
+	load_audio("ALIVE.SFX");
+
+	mlibc_inf("AudioManager::init().");
+}
+
+// Quit (clears memory)
+void quit()
+{
+	Mix_PauseMusic();
+	Mix_CloseAudio();
+
+	for (auto m : LOADED_MUSIC)
 	{
-		Mix_PauseMusic();
-		Mix_CloseAudio();
+		mlibc_inf("AudioManager::quit(). Destroy music.");
 
-		for (auto m : LOADED_MUSIC)
-		{
-			mlibc_inf("AudioManager::quit(). Destroy music.");
-
-			Mix_FreeMusic(m.second);
-		}
-
-		Mix_Quit();
-
-		mlibc_inf("AudioManager::quit().");
+		Mix_FreeMusic(m.second);
 	}
 
-	// Music (mp3, wav, ogg, flac, mod, xm, etc..)
-	Mix_Music * const load_music(const std::string & file_path)
+	Mix_Quit();
+
+	mlibc_inf("AudioManager::quit().");
+}
+
+// Music (mp3, wav, ogg, flac, mod, xm, etc..)
+Mix_Music * const load_music(const std::string & file_path)
+{
+	std::string full_file_path = DATA_DIR + file_path;
+
+	if (LOADED_MUSIC.count(file_path) == 0)
 	{
-		std::string full_file_path = DATA_DIR + file_path;
+		LOADED_MUSIC[file_path] = Mix_LoadMUS(full_file_path.c_str());
 
-		if (LOADED_MUSIC.count(file_path) == 0)
+		if (LOADED_MUSIC[file_path] == NULL)
 		{
-			LOADED_MUSIC[file_path] = Mix_LoadMUS(full_file_path.c_str());
-
-			if (LOADED_MUSIC[file_path] == NULL)
-			{
-				LOADED_MUSIC.erase(file_path);
-				mlibc_err("AudioManager::load_music(%s). Error loading file into memory!", file_path.c_str());
-				return nullptr;
-			}
-
-			mlibc_inf("AudioManager::load_music(%s). Loaded file into memory.", file_path.c_str());
+			LOADED_MUSIC.erase(file_path);
+			mlibc_err("AudioManager::load_music(%s). Error loading file into memory!", file_path.c_str());
+			return nullptr;
 		}
 
-		return LOADED_MUSIC[file_path];
+		mlibc_inf("AudioManager::load_music(%s). Loaded file into memory.", file_path.c_str());
 	}
 
-	void play_music(const std::string & file_path)
-	{
-		if (LOADED_MUSIC.count(file_path) > 0)
-		{
-			PLAYING_MUSIC = LOADED_MUSIC[file_path];
+	return LOADED_MUSIC[file_path];
+}
 
-			Mix_FadeOutMusic(500);
-			if (Mix_FadeInMusic(PLAYING_MUSIC, -1, 500) != 0)
-			{
-				mlibc_err("AudioManager::play_music(%s). Error playing music!", file_path.c_str());
-				return;
-			}
-		}
-		else
+void play_music(const std::string & file_path)
+{
+	if (LOADED_MUSIC.count(file_path) > 0)
+	{
+		PLAYING_MUSIC = LOADED_MUSIC[file_path];
+
+		Mix_FadeOutMusic(500);
+		if (Mix_FadeInMusic(PLAYING_MUSIC, -1, 500) != 0)
 		{
 			mlibc_err("AudioManager::play_music(%s). Error playing music!", file_path.c_str());
+			return;
 		}
 	}
-
-	void set_music_volume(int volume)
+	else
 	{
-		Mix_VolumeMusic(volume);
+		mlibc_err("AudioManager::play_music(%s). Error playing music!", file_path.c_str());
 	}
+}
 
-	// Audio (mp3, wav, ogg, flac, etc..)
-	Mix_Chunk * const load_audio(const std::string & file_path)
+void set_music_volume(int volume)
+{
+	Mix_VolumeMusic(volume);
+}
+
+// Audio (mp3, wav, ogg, flac, etc..)
+Mix_Chunk * const load_audio(const std::string & file_path)
+{
+	std::string full_file_path = DATA_DIR + file_path;
+
+	if (LOADED_AUDIO.count(file_path) == 0)
 	{
-		std::string full_file_path = DATA_DIR + file_path;
+		LOADED_AUDIO[file_path] = Mix_LoadWAV_RW(SDL_RWFromFile(full_file_path.c_str(), "rb"), 1);
 
-		if (LOADED_AUDIO.count(file_path) == 0)
+		if (LOADED_AUDIO[file_path] == NULL)
 		{
-			LOADED_AUDIO[file_path] = Mix_LoadWAV_RW(SDL_RWFromFile(full_file_path.c_str(), "rb"), 1);
-
-			if (LOADED_AUDIO[file_path] == NULL)
-			{
-				LOADED_AUDIO.erase(file_path);
-				mlibc_err("AudioManager::load_audio(%s). Error loading file into memory!", file_path.c_str());
-				return nullptr;
-			}
-
-			mlibc_inf("AudioManager::load_audio(%s). Loaded file into memory.", file_path.c_str());
+			LOADED_AUDIO.erase(file_path);
+			mlibc_err("AudioManager::load_audio(%s). Error loading file into memory!", file_path.c_str());
+			return nullptr;
 		}
 
-		return LOADED_AUDIO[file_path];
+		mlibc_inf("AudioManager::load_audio(%s). Loaded file into memory.", file_path.c_str());
 	}
 
-	void play_audio(const std::string & file_path)
-	{
-		if (LOADED_AUDIO.count(file_path) > 0)
-		{
-			PLAYING_AUDIO = LOADED_AUDIO[file_path];
+	return LOADED_AUDIO[file_path];
+}
 
-			if (Mix_PlayChannel(0, PLAYING_AUDIO, 0) != 0)
-			{
-				mlibc_err("AudioManager::play_audio(%s). Error playing audio!", file_path.c_str());
-				return;
-			}
-		}
-		else
+void play_audio(const std::string & file_path)
+{
+	if (LOADED_AUDIO.count(file_path) > 0)
+	{
+		PLAYING_AUDIO = LOADED_AUDIO[file_path];
+
+		if (Mix_PlayChannel(0, PLAYING_AUDIO, 0) != 0)
 		{
 			mlibc_err("AudioManager::play_audio(%s). Error playing audio!", file_path.c_str());
+			return;
 		}
 	}
-
-	void set_audio_volume(int volume)
+	else
 	{
-		Mix_Volume(0, volume);
+		mlibc_err("AudioManager::play_audio(%s). Error playing audio!", file_path.c_str());
 	}
+}
+
+void set_audio_volume(int volume)
+{
+	Mix_Volume(0, volume);
+}
 
 }

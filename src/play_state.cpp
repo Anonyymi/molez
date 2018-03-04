@@ -42,13 +42,30 @@ PlayState::PlayState(
 	// Play round start sound
 	AudioManager::play_audio("BEGIN.SFX");
 
-	// Spawn 2 player entities (TODO; make this configurable)
-	EntityProps props_player1{ E_PLAYER_OFFLINE, "player 1", vec2(), 2.5f, ES_DEAD, 100.0f };
-	EntityProps props_player2{ E_PLAYER_OFFLINE, "player 2", vec2(), 2.5f, ES_DEAD, 100.0f };
-	Player * player1 = new Player(m_game, m_level, props_player1);
-	Player * player2 = new Player(m_game, m_level, props_player2);
-	m_entities.push_back(player1);
-	m_entities.push_back(player2);
+	// Get player count & spawn players
+	size_t n_players = m_game->getCfg().n_players;
+	for (size_t i = 0; i < n_players; i++)
+	{
+		// Create props
+		EntityProps player_props{ E_PLAYER_OFFLINE, "player " + std::to_string(i), vec2(), 2.5f, ES_DEAD, 100.0f };
+
+		// Create player
+		Player * player_entity = new Player(m_game, m_level, player_props);
+
+		// Set player controller
+		EntityCtrl player_ctrl = player_entity->getCtrl();
+
+		auto game_cfg = m_game->getCfg();
+		if (i + 1 <= game_cfg.c_players.size())
+		{
+			player_ctrl.bind_map = game_cfg.c_players[i];
+		}
+
+		player_entity->setCtrl(player_ctrl);
+
+		// Push to entity list
+		m_entities.push_back(player_entity);
+	}
 }
 
 PlayState::~PlayState()

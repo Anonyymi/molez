@@ -66,8 +66,8 @@ public:
 	void genObject();
 	void genFluid();
 	void regen(uint32_t seed);
-	void alter(Material_t m, Texture_t t, uint8_t r, int32_t x, int32_t y, bool edit = false);
-	void draw(Material_t m, Texture_t t, int32_t x, int32_t y);
+	void alter(Material_t m, Texture_t t, uint8_t r, int x, int y, bool edit = false);
+	void draw(Material_t m, Texture_t t, int x, int y);
 	void samplePixel(Pixel * p);
 	std::string sampleTexture(Texture_t t);
 	void update(float state, float t, float dt);

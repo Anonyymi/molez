@@ -27,6 +27,7 @@ MenuState::MenuState(
 	m_menu_game_cfg.add_item(new MenuItem("AUDIO VOL", MI_NUMERIC, MenuItemVal(MIV_INT32, &m_game->getCfg().sfx_audio_vol, 4, 0, 128)));
 	m_menu_game_cfg.add_item(new MenuItem("MUSIC VOL", MI_NUMERIC, MenuItemVal(MIV_INT32, &m_game->getCfg().sfx_music_vol, 4, 0, 128)));
 	m_menu_game_cfg.add_item(new MenuItem("PHYS TICKRATE", MI_NUMERIC, MenuItemVal(MIV_FLOAT, &m_game->getCfg().phy_tickrate, 0.1f)));
+	m_menu_game_cfg.add_item(new MenuItem("PLAYER COUNT", MI_NUMERIC, MenuItemVal(MIV_INT32, &m_game->getCfg().n_players, 1, 1, 4)));
 
 	// Define level cfg menu
 	m_menu_level_cfg.add_item(new MenuItem("SEED", MI_NUMERIC, MenuItemVal(MIV_UINT32, &m_level->getCfg().seed, 1)));

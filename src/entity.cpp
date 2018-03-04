@@ -2,17 +2,20 @@
 #include "game.h"
 #include "level.h"
 #include "audio_manager.h"
+#include "input_manager.h"
 #include "3rdparty/mlibc_log.h"
 
 Entity::Entity(
 	Game * const game,
 	Level * level,
 	EntityProps props,
+	EntityCtrl ctrl,
 	Sprite * sprite
 ) :
 	m_game(game),
 	m_level(level),
 	m_props(props),
+	m_ctrl(ctrl),
 	m_sprite(sprite),
 	m_pva(m_props.spawn),
 	m_state(m_props.state),
@@ -51,7 +54,7 @@ void Entity::update(float t, float dt)
 			m_health = m_props.health;
 
 			// Clear the level around player
-			m_level->alter(M_VOID, T_AIR, 24, m_pva.pos.x, m_pva.pos.y, true);
+			m_level->alter(M_VOID, T_AIR, 24, static_cast<int>(m_pva.pos.x), static_cast<int>(m_pva.pos.y), true);
 
 			// Play spawn audio
 			AudioManager::play_audio("ALIVE.SFX");
@@ -64,6 +67,28 @@ void Entity::update(float t, float dt)
 
 			// Move towards spawn
 			m_pva.pos += dir * dt;
+		}
+	}
+
+	// Handle controller
+	for (auto & kv : m_ctrl.bind_map)
+	{
+		// Get key & bind location
+		auto key = kv.first;
+		auto val = kv.second;
+
+		// Skip if bind not found
+		if (InputManager::KBOARD.count(key) == 0 || m_ctrl.ctrl_map.count(val) == 0)
+			continue;
+
+		// Toggle controller key state
+		if (InputManager::KBOARD[key])
+		{
+			m_ctrl.ctrl_map[val] = true;
+		}
+		else
+		{
+			m_ctrl.ctrl_map[val] = false;
 		}
 	}
 
@@ -86,6 +111,11 @@ void Entity::render()
 	}
 }
 
+void Entity::setCtrl(EntityCtrl ctrl)
+{
+	m_ctrl = ctrl;
+}
+
 void Entity::setState(EntityState_t state)
 {
 	m_state = state;
@@ -94,6 +124,11 @@ void Entity::setState(EntityState_t state)
 EntityProps & Entity::getProps()
 {
 	return m_props;
+}
+
+EntityCtrl Entity::getCtrl() const
+{
+	return m_ctrl;
 }
 
 Sprite * Entity::getSprite() const

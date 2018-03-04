@@ -170,7 +170,7 @@ void Level::regen(uint32_t seed)
 	gen();
 }
 
-void Level::alter(Material_t m, Texture_t t, uint8_t r, int32_t x, int32_t y, bool edit)
+void Level::alter(Material_t m, Texture_t t, uint8_t r, int x, int y, bool edit)
 {
 	// Calculate start coords
 	int32_t x_start = x - r;
@@ -207,7 +207,7 @@ void Level::alter(Material_t m, Texture_t t, uint8_t r, int32_t x, int32_t y, bo
 	}
 }
 
-void Level::draw(Material_t m, Texture_t t, int32_t x, int32_t y)
+void Level::draw(Material_t m, Texture_t t, int x, int y)
 {
 	// Get texture for material
 	TextureManager::Texture * tex = TextureManager::load_texture(sampleTexture(t));

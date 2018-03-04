@@ -9,4 +9,6 @@ public:
 		EntityProps props
 	);
 	virtual ~Player() override;
+
+	virtual void update(float t, float dt) override;
 };

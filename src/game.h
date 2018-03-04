@@ -2,6 +2,8 @@
 #define GAME_H
 
 #include <string>
+#include <vector>
+#include <map>
 #include <stack>
 
 class GameState;
@@ -27,6 +29,9 @@ struct GameConfig
 	int sfx_audio_vol;
 	// physics
 	float phy_tickrate;
+	// game
+	int n_players;
+	std::vector<std::map<int, std::string>> c_players;
 };
 
 struct PhysicsState

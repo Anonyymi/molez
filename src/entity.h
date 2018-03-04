@@ -1,6 +1,7 @@
 #ifndef ENTITY_H
 #define ENTITY_H
 
+#include <map>
 #include "sprite.h"
 #include "math.h"
 #include "physics.h"
@@ -33,6 +34,12 @@ struct EntityProps
 	float health;
 };
 
+struct EntityCtrl
+{
+	std::map<std::string, bool> ctrl_map;
+	std::map<int, std::string> bind_map;
+};
+
 class Entity
 {
 public:
@@ -40,6 +47,7 @@ public:
 		Game * const game,
 		Level * level,
 		EntityProps props,
+		EntityCtrl ctrl,
 		Sprite * sprite
 	);
 	virtual ~Entity();
@@ -47,9 +55,11 @@ public:
 	virtual void update(float t, float dt);
 	virtual void render();
 
+	void setCtrl(EntityCtrl ctrl);
 	void setState(EntityState_t state);
 
 	EntityProps & getProps();
+	EntityCtrl getCtrl() const;
 	Sprite * getSprite() const;
 	Physics::PosVelAcc getPVA() const;
 	EntityState_t getState() const;
@@ -59,6 +69,7 @@ protected:
 	Game * const m_game;
 	Level * m_level;
 	EntityProps m_props;
+	EntityCtrl m_ctrl;
 	Sprite * m_sprite;
 	float m_time;
 	Physics::PosVelAcc m_pva;

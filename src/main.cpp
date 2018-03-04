@@ -1,5 +1,9 @@
 #include <iostream>
 #include <fstream>
+#include <string>
+#include <vector>
+#include <map>
+#include <SDL2/SDL.h>
 #include "3rdparty/json.hpp"
 #include "game.h"
 
@@ -35,6 +39,35 @@ int main(int argc, char * argv[])
 		cfg.sfx_music_vol = cfg_json["audio"]["music_vol"].get<int>();
 		cfg.sfx_audio_vol = cfg_json["audio"]["audio_vol"].get<int>();
 		cfg.phy_tickrate = cfg_json["physics"]["tickrate"].get<float>();
+		cfg.n_players = 2;
+
+		// Setup player controller bindings
+		cfg.c_players = std::vector<std::map<int, std::string>>();
+
+		// Player 1
+		std::map<int, std::string> p1;
+		p1[SDLK_LEFT] = "left";
+		p1[SDLK_RIGHT] = "right";
+		p1[SDLK_UP] = "up";
+		p1[SDLK_DOWN] = "down";
+		p1[SDLK_RCTRL] = "jump";
+		p1[SDLK_RETURN] = "fire";
+		p1[SDLK_BACKSPACE] = "reload";
+		p1[SDLK_RSHIFT] = "change";
+
+		// Player 2
+		std::map<int, std::string> p2;
+		p2[SDLK_a] = "left";
+		p2[SDLK_d] = "right";
+		p2[SDLK_w] = "up";
+		p2[SDLK_s] = "down";
+		p2[SDLK_SPACE] = "jump";
+		p2[SDLK_f] = "fire";
+		p2[SDLK_r] = "reload";
+		p2[SDLK_y] = "change";
+
+		cfg.c_players.push_back(p1);
+		cfg.c_players.push_back(p2);
 
 		// Create game
 		Game game(

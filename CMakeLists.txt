@@ -92,7 +92,9 @@ endif()
 # Set project install config
 install(TARGETS Molez DESTINATION ${DIR_BIN})
 install(DIRECTORY ${DIR_DTA} DESTINATION ${DIR_BIN})
-install(DIRECTORY ${DIR_LIB}/ DESTINATION ${DIR_BIN})
+if (MSVC)
+  install(DIRECTORY ${DIR_LIB}/ DESTINATION ${DIR_BIN})
+endif()
 
 # Set project package(s)
 set(CPACK_PACKAGE_NAME "Molez")

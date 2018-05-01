@@ -18,10 +18,10 @@ AABB::~AABB()
 void AABB::render(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
 	DisplayManager::set_rect(
-		m_minP.x,
-		m_minP.y,
-		m_maxP.x - m_minP.x,
-		m_maxP.y - m_minP.y,
+		static_cast<int>(m_minP.x),
+		static_cast<int>(m_minP.y),
+		static_cast<int>(m_maxP.x - m_minP.x),
+		static_cast<int>(m_maxP.y - m_minP.y),
 		r,
 		g,
 		b,

@@ -88,6 +88,19 @@ void Entity::update(float t, float dt)
 		}
 	}
 
+	// Alive
+	if (m_state == ES_ALIVE)
+	{
+		// Simulate physics step
+		m_pva.pos = m_pva.pos + m_pva.vel * dt;
+
+		// Apply air friction
+		m_pva.vel -= m_pva.vel * 0.05f;
+
+		// Apply gravity force
+		m_pva.vel += Math::vec2(0.0f, -9.8f);
+	}
+
 	// Handle controller
 	for (auto & kv : m_ctrl.bind_map)
 	{

@@ -25,7 +25,7 @@ PlayState::PlayState(
 	int g_camera_y = -DisplayManager::ACTIVE_WINDOW->height / 2;
 	DisplayManager::Camera * g_camera = DisplayManager::load_camera("gui", 0, 0, 1);
 	g_camera->x = g_camera_x;
-	g_camera->y = g_camera_x;
+	g_camera->y = g_camera_y;
 
 	// Init level camera, translate to level center
 	int l_camera_x = m_level->getCfg().width / 2;
@@ -141,6 +141,14 @@ void PlayState::render(float state)
 
 	// Switch to gui camera
 	DisplayManager::activate_camera("gui");
+
+	auto player1 = getEntityByName("player 0");
+
+	if (player1)
+	{
+		DisplayManager::set_text(0, 0, 16, 16, "PLAYER X: " + std::to_string(player1->getPVA().pos.x), 255, 0, 255, TextureManager::load_font("MOLEZ.JSON"));
+		DisplayManager::set_text(0, 16 * 1, 16, 16, "PLAYER Y: " + std::to_string(player1->getPVA().pos.y), 255, 0, 255, TextureManager::load_font("MOLEZ.JSON"));
+	}
 
 	// Render gui
 	//m_menu.render();

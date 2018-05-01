@@ -67,6 +67,9 @@ public:
 
 	void update(float t, float dt);
 	void render(int x, int y, int alpha = -1);
+
+	SpriteAnim * getCurrentAnim();
+	SpriteFrame * getCurrentFrame();
 private:
 	std::string m_filePath;
 	TextureManager::Texture * m_sheet;

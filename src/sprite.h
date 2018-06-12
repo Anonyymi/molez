@@ -1,6 +1,7 @@
 #ifndef SPRITE_H
 #define SPRITE_H
 
+#include <string>
 #include <vector>
 #include <map>
 #include <cstdint>

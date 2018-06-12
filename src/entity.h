@@ -1,6 +1,7 @@
 #ifndef ENTITY_H
 #define ENTITY_H
 
+#include <string>
 #include <map>
 #include "sprite.h"
 #include "math.h"

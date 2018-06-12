@@ -64,13 +64,21 @@ target_link_libraries(Molez PUBLIC
 
 # Setup linker flags
 if (UNIX)
-  target_link_libraries(Molez PUBLIC
-    -lstdc++
-    -lm
-    -lSDL2_mixer
-    -static-libgcc
-    -static-libstdc++
-  )
+  if (APPLE)
+    target_link_libraries(Molez PUBLIC
+      -lstdc++
+      -lm
+      -lSDL2_mixer
+    )
+  else()
+    target_link_libraries(Molez PUBLIC
+      -lstdc++
+      -lm
+      -lSDL2_mixer
+      -static-libgcc
+      -static-libstdc++
+    )
+  endif()
 endif()
 
 # Set project build config

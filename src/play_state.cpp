@@ -81,7 +81,7 @@ void PlayState::update(float state, float t, float dt)
 	// Handle input
 	if (InputManager::KBOARD[SDLK_1])
 	{
-		Entity * player = getEntityByName("player 1");
+		Entity * player = getEntityByName("player 0");
 
 		if (player)
 		{
@@ -92,7 +92,7 @@ void PlayState::update(float state, float t, float dt)
 	}
 	if (InputManager::KBOARD[SDLK_2])
 	{
-		Entity * player = getEntityByName("player 2");
+		Entity * player = getEntityByName("player 1");
 
 		if (player)
 		{

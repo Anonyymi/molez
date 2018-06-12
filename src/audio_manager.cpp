@@ -90,12 +90,12 @@ void play_music(const std::string & file_path)
 	{
 		PLAYING_MUSIC = LOADED_MUSIC[file_path];
 
-		//Mix_FadeOutMusic(500);
-		//if (Mix_FadeInMusic(PLAYING_MUSIC, -1, 500) != 0)
-		//{
-		//	mlibc_err("AudioManager::play_music(%s). Error playing music!", file_path.c_str());
-		//	return;
-		//}
+		Mix_FadeOutMusic(500);
+		if (Mix_FadeInMusic(PLAYING_MUSIC, -1, 500) != 0)
+		{
+			mlibc_err("AudioManager::play_music(%s). Error playing music!", file_path.c_str());
+			return;
+		}
 	}
 	else
 	{

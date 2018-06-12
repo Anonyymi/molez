@@ -6,6 +6,7 @@
 #include "sprite.h"
 #include "math.h"
 #include "physics.h"
+#include "aabb.h"
 
 class Game;
 class Level;
@@ -76,6 +77,7 @@ protected:
 	Physics::PosVelAcc m_pva;
 	EntityState_t m_state;
 	float m_health;
+	AABB m_aabb;
 };
 
 #endif // ENTITY_H

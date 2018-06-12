@@ -137,3 +137,26 @@ void Sprite::render(int x, int y, int alpha)
 		DisplayManager::set_pixel(x + p_x, y + p_y, r, g, b, a, false);
 	}
 }
+
+SpriteAnim * Sprite::getCurrentAnim()
+{
+	// Do not continue if current animation does not exist
+	if (m_anims.count(m_animIdent) == 0)
+	{
+		return nullptr;
+	}
+
+	return &m_anims[m_animIdent];
+}
+
+SpriteFrame * Sprite::getCurrentFrame()
+{
+	// Do not continue if current animation does not exist
+	if (m_anims.count(m_animIdent) == 0)
+	{
+		return nullptr;
+	}
+
+	SpriteAnim * anim = &m_anims[m_animIdent];
+	return &anim->frames[m_animFrame];
+}

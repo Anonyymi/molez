@@ -17,9 +17,11 @@ Entity::Entity(
 	m_props(props),
 	m_ctrl(ctrl),
 	m_sprite(sprite),
+	m_time(0.0f),
 	m_pva(m_props.spawn),
 	m_state(m_props.state),
-	m_health(m_props.health)
+	m_health(m_props.health),
+	m_aabb()
 {
 
 }
@@ -31,6 +33,22 @@ Entity::~Entity()
 
 void Entity::update(float t, float dt)
 {
+	// Update AABB
+	if (m_sprite)
+	{
+		// Get current sprite anim frame data
+		auto frame = m_sprite->getCurrentFrame();
+
+		m_aabb.setMinP(Math::vec2(
+			m_pva.pos.x - static_cast<float>(frame->w * 0.5f),
+			m_pva.pos.y - static_cast<float>(frame->h * 0.5f)
+		));
+		m_aabb.setMaxP(Math::vec2(
+			m_pva.pos.x + static_cast<float>(frame->w * 0.5f),
+			m_pva.pos.y + static_cast<float>(frame->h * 0.5f)
+		));
+	}
+
 	// Reset time if dead + trigger respawn + do some other preparation
 	if (m_state == ES_DEAD)
 	{
@@ -70,6 +88,19 @@ void Entity::update(float t, float dt)
 		}
 	}
 
+	// Alive
+	if (m_state == ES_ALIVE)
+	{
+		// Simulate physics step
+		m_pva.pos = m_pva.pos + m_pva.vel * dt;
+
+		// Apply air friction
+		m_pva.vel -= m_pva.vel * 0.05f;
+
+		// Apply gravity force
+		m_pva.vel += Math::vec2(0.0f, -9.8f);
+	}
+
 	// Handle controller
 	for (auto & kv : m_ctrl.bind_map)
 	{
@@ -107,8 +138,18 @@ void Entity::render()
 	// Render sprite
 	if (m_sprite)
 	{
-		m_sprite->render(static_cast<int>(m_pva.pos.x), static_cast<int>(m_pva.pos.y), (m_state == ES_SPAWNING) ? 90 : -1);
+		// Get current sprite anim frame data
+		auto frame = m_sprite->getCurrentFrame();
+
+		m_sprite->render(
+			static_cast<int>(m_pva.pos.x - static_cast<float>(frame->w * 0.5f)),
+			static_cast<int>(m_pva.pos.y - static_cast<float>(frame->h * 0.5f)),
+			(m_state == ES_SPAWNING) ? 90 : -1
+		);
 	}
+
+	// Render AABB
+	m_aabb.render(0, 255, 0, 64);
 }
 
 void Entity::setCtrl(EntityCtrl ctrl)

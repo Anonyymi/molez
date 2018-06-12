@@ -6,7 +6,13 @@
 class AABB
 {
 public:
-	AABB(Math::vec2 minP = Math::vec2(-1, -1), Math::vec2 maxP = Math::vec2(1, 1));
+	AABB(
+		Math::vec2 minP = Math::vec2(-1, -1),
+		Math::vec2 maxP = Math::vec2(1, 1)
+	);
+	~AABB();
+
+	virtual void render(uint8_t r, uint8_t g, uint8_t b, uint8_t a = -1);
 
 	bool collidesXRight(const AABB & other) const;
 	bool collidesXLeft(const AABB & other) const;
